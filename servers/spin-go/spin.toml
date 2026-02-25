@@ -1,0 +1,21 @@
+#:schema https://schemas.spinframework.dev/spin/manifest-v2/latest.json
+
+spin_manifest_version = 2
+
+[application]
+name = "hello-spin"
+version = "0.1.0"
+authors = ["ubuntu"]
+description = ""
+
+[[trigger.http]]
+route = "/..."
+component = "hello-spin"
+
+[component.hello-spin]
+source = "main.wasm"
+allowed_outbound_hosts = []
+[component.hello-spin.build]
+command = "tinygo build -target=wasip1 -buildmode=c-shared -no-debug -o main.wasm ."
+watch = ["**/*.go", "go.mod"]
+

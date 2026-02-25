@@ -1,0 +1,11 @@
+# This file is not applied directly. The actual config is in
+# ./prometheus-adapter/manifests/config-map.yaml
+# This file is just a backup
+externalRules:
+- seriesQuery: 'nginx_ingress_nginx_http_requests_total{class!=""}'
+  resources:
+    namespaced: false
+  name:
+    matches: "^(.*)_total"
+    as: "http_requests_per_second"
+  metricsQuery: 'sum(rate(<<.Series>>{<<.LabelMatchers>>}[30s])) by (<<.GroupBy>>)'

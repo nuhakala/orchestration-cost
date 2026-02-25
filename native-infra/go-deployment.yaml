@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: go-server
+  name: go-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: go-server
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: go-server
+    spec:
+      containers:
+      - image: 192.168.68.54:5000/go-server-final-arm
+      # - image: 10.164.178.1:5000/go-server-final-arm
+        name: go-server
+        ports:
+        - containerPort: 8080
+        imagePullPolicy: Always

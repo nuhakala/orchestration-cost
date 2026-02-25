@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rust-server
+  labels:
+    app: rust-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rust-server
+  template:
+    metadata:
+      labels:
+        app: rust-server
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                - key: node-role.kubernetes.io/edge
+                  operator: Exists
+                - key: node-role.kubernetes.io/agent
+                  operator: Exists
+      containers:
+        - name: rust-server
+          image: 10.164.178.1:5000/rust-server-final
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rust-server-svc
+spec:
+  selector:
+    app: rust-server
+  ports:
+    - name: http-0
+      port: 12345
+      protocol: TCP
+      targetPort: 8080
+---
+apiVersion: k8s.nginx.org/v1
+kind: VirtualServer
+metadata:
+  name: rust-server-vs
+  namespace: default
+spec:
+  host: "nuhakala.com"
+  upstreams:
+  - name: rust-server-svc
+    service: rust-server-svc
+    port: 12345
+    use-cluster-ip: true
+  routes:
+  - path: /
+    action:
+      proxy:
+        upstream: rust-server-svc
+        requestHeaders:
+          set:
+          - name: Host
+            value: rust-server-svc.nginx-ingress.svc.cluster.local
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: rust-server-hpa
+  namespace: default
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: rust-server
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+  - type: External
+    external:
+      metric:
+        name: http_requests_per_second
+      target:
+        type: Value
+        averageValue: 100
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: rust-server-rule
+spec:
+  host: rust-server
+  trafficPolicy:
+    loadBalancer:
+      simple: RANDOM
+---

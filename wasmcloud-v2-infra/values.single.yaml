@@ -1,0 +1,38 @@
+operator:
+  image:
+    registry: 10.164.178.1:5000
+    repository: runtime-operator-rc6
+    tag: "latest"
+
+gateway:
+  enabled: true
+  image:
+    registry: 10.164.178.1:5000
+    repository: runtime-gateway-rc6
+    tag: "latest"
+  service:
+    type: NodePort
+    nodePort: 31080
+
+runtime:
+  image:
+    registry: 10.164.178.1:5000
+    repository: wash-rc6
+    tag: "latest"
+  hostGroups:
+    - name: default
+      replicas: 15
+      service:
+        type: ClusterIP
+      webgpu:
+        enabled: true
+      http:
+        enabled: true
+        port: 80
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "250m" # 0.25 CPU cores
+        limits:
+          memory: "512Mi"
+          cpu: "500m" # 0.5 CPU cores

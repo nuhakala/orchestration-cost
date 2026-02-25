@@ -1,0 +1,15 @@
+mirrors:
+  "10.164.178.1:5000":
+    endpoint:
+      - "http://10.164.178.1:5000"
+  "192.168.68.54:5000":
+    endpoint:
+      - "http://192.168.68.54:5000"
+configs:
+  "10.164.178.1:5000":
+    tls:
+      insecure_skip_verify: true
+  "192.168.68.54:5000":
+    tls:
+      insecure_skip_verify: true
+

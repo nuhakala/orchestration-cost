@@ -1,0 +1,4 @@
+version = 2
+
+[plugins."io.containerd.grpc.v1.cri".registry]
+  config_path = ""

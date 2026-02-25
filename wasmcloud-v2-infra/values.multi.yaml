@@ -1,0 +1,38 @@
+operator:
+  image:
+    registry: 192.168.68.54:5000
+    repository: runtime-operator-rc6-arm
+    tag: "latest"
+
+gateway:
+  enabled: true
+  image:
+    registry: 192.168.68.54:5000
+    repository: runtime-gateway-rc6-arm
+    tag: "latest"
+  service:
+    type: NodePort
+    nodePort: 31080
+
+runtime:
+  image:
+    registry: 192.168.68.54:5000
+    repository: wash-rc6-arm
+    tag: "latest"
+  hostGroups:
+    - name: default
+      replicas: 15
+      service:
+        type: ClusterIP
+      webgpu:
+        enabled: true
+      http:
+        enabled: true
+        port: 80
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "200m" # can't have 250 because then can't have 15 pods, not enough cpu
+        limits:
+          memory: "512Mi"
+          cpu: "500m" # 0.5 CPU cores

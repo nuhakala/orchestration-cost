@@ -1,0 +1,21 @@
+apiVersion: runtime.wasmcloud.dev/v1alpha1
+kind: WorkloadDeployment
+metadata:
+  name: wash-go-server
+spec:
+  replicas: 10
+  template:
+    spec:
+      hostSelector:
+        hostgroup: default
+      components:
+        - name: go-server
+          image: 10.164.178.1:5000/wash-go-server:0.1.0
+          # image: 192.168.68.54:5000/wash-go-server:0.1.0
+      hostInterfaces:
+        - namespace: wasi
+          package: http
+          interfaces:
+            - incoming-handler
+          config:
+            host: nuhakala.com

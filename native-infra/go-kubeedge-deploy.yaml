@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-deployment
+  labels:
+    app: go-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: go-app
+  template:
+    metadata:
+      labels:
+        app: go-app
+    spec:
+      containers:
+      # - image: 10.164.178.1:5000/go-server-final
+      - image: 192.168.68.54:5000/go-server-final-arm
+        name: go-server
+        ports:
+        - containerPort: 8080
+      nodeSelector:
+        # node-role.kubernetes.io/control-plane: ""
+        node-role.kubernetes.io/edge: ""
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-server
+spec:
+  selector:
+    app: go-app
+  ports:
+    - name: http-0
+      port: 12345
+      protocol: TCP
+      targetPort: 8080
+---
+apiVersion: k8s.nginx.org/v1
+kind: VirtualServer
+metadata:
+  name: go-vs
+  namespace: default
+spec:
+  host: "nuhakala.com"
+  upstreams:
+  - name: go-server
+    service: go-server
+    port: 12345
+    use-cluster-ip: true
+  routes:
+  - path: /
+    action:
+      proxy:
+        upstream: go-server
+        requestHeaders:
+          set:
+          - name: Host
+            value: go-server.nginx-ingress.svc.cluster.local
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: go-rule
+spec:
+  host: go-server
+  trafficPolicy:
+    loadBalancer:
+      simple: RANDOM
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: go-deploy-hpa
+  namespace: default
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: go-deployment
+  minReplicas: 1
+  maxReplicas: 100
+  metrics:
+  - type: External
+    external:
+      metric:
+        name: http_requests_per_second
+      target:
+        type: Value
+        averageValue: 10
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 60
+---

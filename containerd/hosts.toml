@@ -1,0 +1,6 @@
+server = "https://10.164.178.1:5000"
+
+[host."http://10.164.178.1:5000"]
+  capabilities = ["pull", "resolve", "push"]
+  skip_verify = true
+  insecure_skip_verify = true

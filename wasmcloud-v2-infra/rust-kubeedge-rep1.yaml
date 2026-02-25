@@ -1,0 +1,66 @@
+apiVersion: runtime.wasmcloud.dev/v1alpha1
+kind: WorkloadDeployment
+metadata:
+  name: wash-rust-server
+spec:
+  replicas: 1
+  template:
+    spec:
+      hostSelector:
+        hostgroup: default
+      components:
+        - name: rust-server
+          # image: 10.164.178.1:5000/wash-rust-server:0.1.0
+          image: 192.168.68.54:5000/wash-rust-server:0.1.0
+      hostInterfaces:
+        - namespace: wasi
+          package: http
+          interfaces:
+            - incoming-handler
+          config:
+            host: nuhakala.com
+            # address: "0.0.0.0:8080"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: edgemesh-gateway
+spec:
+  selector:
+    kubeedge: edgemesh-gateway
+  servers:
+    - hosts:
+        - '*'
+      port:
+        name: http-0
+        number: 31080
+        protocol: HTTP
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: hostgroup-default
+spec:
+  host: hostgroup-default
+  trafficPolicy:
+    loadBalancer:
+      simple: RANDOM
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: edgemesh-gateway-svc
+spec:
+  gateways:
+    - edgemesh-gateway
+  hosts:
+    - '*'
+  http:
+    - match:
+      - uri:
+          prefix: /
+      route:
+      - destination:
+          host: hostgroup-default
+          port:
+            number: 80
