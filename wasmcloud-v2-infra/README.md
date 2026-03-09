@@ -1,14 +1,14 @@
 
 # Wasmcloud
 
-Because wasmcloud does not have proper versioning, you need to clone
-the wash repo `wasmcloud/wash` and build the rc6 components yourself and push
-them to local registry. The images are then defined in the local helm values
-file.
+Because there are no ready-built artifacts for the RC versions, you need to
+clone the wash repo `wasmcloud/wash` and build the rc6 (or rc7) components
+yourself and push them to local registry. The images are then defined in the
+local helm values file.
 
 In addition, to be able to run **workloads from local registry**, you need to
 add a flag `--allow-insecure-registries` to the runtime deployment template in
-the helm chart.
+the helm chart. This is already added to the charts.
 
 # No autoscaling
 

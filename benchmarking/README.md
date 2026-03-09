@@ -18,5 +18,7 @@ root are meant to be invoked directly.
   latex tables in their own files.
 - `calculate_orch_cost_metric.py` calculates the orchestration cost for each
   test case and creates figures out of them.
+- `print_startups.py` is a small tool to print wasmCloud extra measurement
+  startup times.
 
 For more detailed usage instructions, consult the individual files.

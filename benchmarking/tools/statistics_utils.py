@@ -1,4 +1,6 @@
+import glob
 from math import nan
+import sys
 import pandas as pd
 from dataclasses import dataclass
 
@@ -335,3 +337,39 @@ def get_orch_cost_metrics(list_files: list[str]):
         float(df["max_glob"].mean()),
         float(df["proc_rss"].mean()),
     )
+
+
+def startup_time_values(folder):
+    """
+    Aggregates all startup times into an array from given folder.
+
+        folder - full system path for startup file folder
+    """
+    startup_files = glob.glob(f"{folder}/*-startup.txt")
+
+    values = []
+    for filepath in startup_files:
+        with open(filepath, "r") as f:
+            value = float(f.read().strip())
+            values.append(value)
+    return values
+
+def startup_time_indicators(folder):
+    """
+    Aggregates all startup times from given folder and calculates median and
+    mean for the values.
+
+    Returns a tuple: (median, mean)
+
+        folder - full system path for startup file folder
+    """
+    values = startup_time_values(folder)
+
+    if values:
+        s = pd.Series(values)
+        median: float = float(round(s.median(), 2))
+        average: float = float(round(s.mean(), 2))
+        return median, average
+    else:
+        print(f"No startup files found from {folder}")
+        sys.exit(0)

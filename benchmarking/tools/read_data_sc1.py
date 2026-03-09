@@ -3,14 +3,13 @@ import re
 import sys
 import matplotlib.pyplot as plt
 import os
-import pandas as pd
-
-from tools import statistics_utils
 
 sys.path.insert(0, os.path.abspath(".."))
 sys.path.insert(0, os.path.abspath("../tools"))
+sys.path.insert(0, os.path.abspath("."))
 import definitions
 import tools.curve_utils
+from tools import statistics_utils
 
 
 def __check_folder(stats_dir):
@@ -25,33 +24,27 @@ def __check_folder(stats_dir):
         sys.exit(0)
     return folder
 
-
-def __startup_time_values(folder):
-    startup_files = glob.glob(f"{folder}/*-startup.txt")
-
-    values = []
-    for filepath in startup_files:
-        with open(filepath, "r") as f:
-            value = float(f.read().strip())
-            values.append(value)
-
-    if values:
-        s = pd.Series(values)
-        median: float = float(round(s.median(), 2))
-        average: float = float(round(s.mean(), 2))
-        return median, average
-    else:
-        print(f"No startup files found from {folder}")
+def __check_folder_basedir(base_dir, stats_dir):
+    folder = f"{base_dir}/{stats_dir}"
+    print(f"Reading data from {folder}")
+    empty = True
+    for _ in os.scandir(folder):
+        empty = False
+        break
+    if empty:
+        print("No data files found")
         sys.exit(0)
+    return folder
+
 
 
 def __startup_times(folder):
-    median, average = __startup_time_values(folder)
+    median, average = statistics_utils.startup_time_indicators(folder)
     print(f"Average startup value: {average}, median {median}")
 
 
 def __startup_times_latex(folder, row_title):
-    median, average = __startup_time_values(folder)
+    median, average = statistics_utils.startup_time_indicators(folder)
     row = f"{row_title} & {average} & {median} \\\\\n"
     return row
 
@@ -80,6 +73,7 @@ def create_curves(stats_dir, multi):
     """
     SAVE_FIGURES = False
     folder = __check_folder(stats_dir)
+    # folder = __check_folder_basedir(f"{definitions.ROOT_DIR}/data/sc1-extra-wc-data", stats_dir)
 
     perf_files = glob.glob(f"{folder}/[0-9]-perf.csv")
     if multi:
@@ -152,15 +146,15 @@ def print_latex_table_row(
             f.write(__startup_times_latex(folder, stats_dir))
 
 
-def get_orch_cost_values(stats_dir, metric: statistics_utils.OrchCostMetric):
+def get_orch_cost_values(base_dir, stats_dir, metric: statistics_utils.OrchCostMetric):
     """
     Parses scenario 1 statistics and saves them to the metric-object.
 
         stats_dir - directory to read stats from
         metric - statistics_utils.OrchCostMetric object
     """
-    folder = __check_folder(stats_dir)
-    startup_median, _ = __startup_time_values(folder)
+    folder = __check_folder_basedir(base_dir, stats_dir)
+    startup_median, _ = statistics_utils.startup_time_indicators(folder)
     metric.startup = startup_median
     if metric.multi_node():
         perf_files = glob.glob(f"{folder}/[0-9]-perf.csv")

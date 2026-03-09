@@ -10,6 +10,7 @@ command line flag --save to save files. Preview can be disabled with --no-show
 import argparse
 import itertools
 import os
+from typing import NamedTuple, cast
 
 from tables.leaf import math
 import definitions
@@ -17,11 +18,13 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+from tools.extra_wc_data import get_extra_orch_cost_means, get_platform_indicators
 import tools.read_data_sc1
 import tools.read_data_sc2
 from tools.statistics_utils import OrchCostMetric
 
 metrics = {}
+wc_extra_metrics = {}
 all_files = []
 
 parser = argparse.ArgumentParser(description="My Project CLI")
@@ -33,7 +36,7 @@ args = parser.parse_args()
 items = os.listdir(definitions.SC1_PATH)
 for test_case in items:
     metric = metrics.get(test_case, OrchCostMetric(test_case=test_case))
-    tools.read_data_sc1.get_orch_cost_values(test_case, metric)
+    tools.read_data_sc1.get_orch_cost_values(definitions.SC1_PATH, test_case, metric)
     metrics[test_case] = metric
 
 items = os.listdir(definitions.SC2_PATH)
@@ -41,6 +44,20 @@ for test_case in items:
     metric = metrics.get(test_case, OrchCostMetric(test_case=test_case))
     tools.read_data_sc2.get_orch_cost_values(test_case, metric)
     metrics[test_case] = metric
+
+items = os.listdir(definitions.WC_EXTRA_LOC)
+for test_case in items:
+    metric = wc_extra_metrics.get(test_case, OrchCostMetric(test_case=test_case))
+    tools.read_data_sc1.get_orch_cost_values(definitions.WC_EXTRA_LOC, test_case, metric)
+    if metric.platform() == "k3s" and metric.language() == "go":
+        tools.read_data_sc2.get_orch_cost_values("wc-k3s-multi-go", metric)
+    if metric.platform() == "k3s" and metric.language() == "rust":
+        tools.read_data_sc2.get_orch_cost_values("wc-k3s-multi-rust", metric)
+    if metric.platform() == "k0s" and metric.language() == "go":
+        tools.read_data_sc2.get_orch_cost_values("wc-k0s-multi-go", metric)
+    if metric.platform() == "k0s" and metric.language() == "rust":
+        tools.read_data_sc2.get_orch_cost_values("wc-k0s-multi-rust", metric)
+    wc_extra_metrics[test_case] = metric
 
 # Add dummy values for spin native kubeedge
 metrics["spin-kubeedge-multi-native-go"] = OrchCostMetric(
@@ -78,6 +95,15 @@ multi_no_startup = pd.DataFrame(
         "language": pd.Series(dtype="string"),
     }
 )
+wc_extra = pd.DataFrame(
+    {
+        "test_case": pd.Series(dtype="string"),
+        "value": pd.Series(dtype="float"),
+        "platform": pd.Series(dtype="string"),
+        "orchestrator": pd.Series(dtype="string"),
+        "language": pd.Series(dtype="string"),
+    }
+)
 for metric in metrics.values():
     test_case = metric.test_case_parsed()
 
@@ -102,6 +128,35 @@ for metric in metrics.values():
     else:
         single.loc[len(single)] = row
 
+for metric in wc_extra_metrics.values():
+    test_case = metric.test_case_parsed()
+    row = {
+        "test_case": test_case,
+        "value": metric.calculate_metric(),
+        "platform": metric.platform(),
+        "orchestrator": metric.orchestrator(),
+        "language": metric.language(),
+        }
+
+    wc_extra.loc[len(wc_extra)] = row
+
+
+# Replace the orch cost value with the one that were
+# calculated from the averages over multiple test sets.
+wc_extra_orch_costs = get_extra_orch_cost_means(wc_extra_metrics)
+multi.loc[
+    (multi["test_case"] == "wc-go") & (multi["platform"] == "k0s"), "value"
+] = wc_extra_orch_costs[0]
+multi.loc[
+    (multi["test_case"] == "wc-rust") & (multi["platform"] == "k0s"), "value"
+] = wc_extra_orch_costs[1]
+multi.loc[
+    (multi["test_case"] == "wc-go") & (multi["platform"] == "k3s"), "value"
+] = wc_extra_orch_costs[2]
+multi.loc[
+    (multi["test_case"] == "wc-rust") & (multi["platform"] == "k3s"), "value"
+] = wc_extra_orch_costs[3]
+
 
 # ***** Prepare save files *****
 orch_cost_single_sorted = f"{definitions.LATEX_TABLE_LOC}/orch-cost-single-sorted.tex"
@@ -111,6 +166,7 @@ all_files = all_files + [orch_cost_multi_sorted, orch_cost_single_sorted]
 fig_platform_single = f"{definitions.FIGURE_DIR}/orch_cost_platform_single.png"
 fig_platform_multi = f"{definitions.FIGURE_DIR}/orch_cost_platform_multi.png"
 fig_platform_multi_no_startup = f"{definitions.FIGURE_DIR}/orch_cost_platform_multi_no_startup.png"
+fig_platform_multi_wc_extra = f"{definitions.FIGURE_DIR}/orch_cost_platform_multi_wc_extra.png"
 fig_orchestrator_single = f"{definitions.FIGURE_DIR}/orch_cost_orchestrator_single.png"
 fig_orchestrator_multi = f"{definitions.FIGURE_DIR}/orch_cost_orchestrator_multi.png"
 fig_orchestrator_single_curve = ( f"{definitions.FIGURE_DIR}/orch_cost_orchestrator_single_curve.png")
@@ -123,6 +179,7 @@ all_files = all_files + [
     fig_orchestrator_multi,
     fig_orchestrator_single_curve,
     fig_orchestrator_multi_curve,
+    fig_platform_multi_wc_extra,
 ]
 
 # Remove old files
@@ -136,11 +193,17 @@ if args.save:
 
 
 # ***** Print latex tables *****
+class Row(NamedTuple):
+    test_case: str
+    platform: str
+    orchestrator: str
+    value: float
 with open(orch_cost_single_sorted, "w", encoding="utf-8") as f:
     f.write(
         "\\textbf{Test case} & \\textbf{Platform} & \\textbf{Orchestrator} & \\textbf{Orchestration cost} \\\\\n"
     )
-    for row in single.sort_values(by="value").itertuples(index=False):
+    for r in single.sort_values(by="value").itertuples(index=False):
+        row = cast(Row, r)
         f.write(
             f"{row.test_case} & {row.platform} & {row.orchestrator} & {row.value} \\\\\n"
         )
@@ -149,7 +212,15 @@ with open(orch_cost_multi_sorted, "w", encoding="utf-8") as f:
     f.write(
         "\\textbf{Test case} & \\textbf{Platform} & \\textbf{Orchestrator} & \\textbf{Orchestration cost} \\\\\n"
     )
-    for row in multi.sort_values(by="value").itertuples(index=False):
+    for r in multi.sort_values(by="value").itertuples(index=False):
+        row = cast(Row, r)
+        f.write(
+            f"{row.test_case} & {row.platform} & {row.orchestrator} & {row.value} \\\\\n"
+        )
+
+with open(orch_cost_multi_sorted, "w", encoding="utf-8") as f:
+    for r in wc_extra.sort_values(by="value").itertuples(index=False):
+        row = cast(Row, r)
         f.write(
             f"{row.test_case} & {row.platform} & {row.orchestrator} & {row.value} \\\\\n"
         )
@@ -185,7 +256,11 @@ def create_bar_plot(
         "----",
         "xxx",
         "+++",
-        "**"
+        "**",
+        "//||",
+        "\\\\||",
+        "--xx",
+        "..--",
     ])
     for attribute, measurement in value_tuples.items():
         offset = width * multiplier
@@ -202,11 +277,32 @@ def create_bar_plot(
         ax.bar_label(rects, padding=3, fontsize=bar_font_size)
         multiplier += 1
 
-    # Add some text for labels, title and custom x-axis tick labels, etc.
     group_size = len(value_tuples)
+
+    # We need to calculate the centers differently for wasmcloud extra data
+    # because there the group sizes are 14 and 8
+    # Hack works because no other figure has group size of 14
+    #
+    # Instead of this we could just define the centers by hand to be
+    # [0.455, 1.245]
+    if group_size == 14:
+        centers = []
+        first_center = (math.floor(len(value_tuples) / 2) - 0.5) * width
+        centers.append(first_center)
+        second_size = sum(1 for t in list(value_tuples.values()) if not math.isnan(t[1]))
+        second_center = (math.floor(second_size / 2) - 0.5) * width
+        # First take into account the first group
+        # then add the second center
+        # then add width because the number is off by one bar for whatever reason
+        # then add 0.1 because that is what we set as xmargin below
+        centers.append(2 * first_center + second_center + width + 0.02)
+        ax.set_xticks(centers, x_labels)
+    else:
+        ax.set_xticks(x + (math.floor(group_size / 2) - 0.5) * width, x_labels)
+
+    # Add some text for labels, title and custom x-axis tick labels, etc.
     # ax.set_ylabel(ylabel)
     ax.set_title(title)
-    ax.set_xticks(x + (math.floor(group_size / 2) - 0.5) * width, x_labels)
     ax.legend(loc="upper left", bbox_to_anchor=(0, -0.1), ncols=ncols, handleheight=2)
     ax.set_ylim(ymin, ylim)
     ax.set_xmargin(0.01)
@@ -283,6 +379,24 @@ def platform_single_values(single_sorted):
     return orchestrator_values_single
 
 
+def platform_single_values_wc_extra(single_sorted):
+    orchestrator_values_single = {}
+    for i in range(0, 16, 2):
+        row = single_sorted.iloc[i]
+        row2 = single_sorted.iloc[i + 1]
+        orchestrator_values_single[row.test_case] = (
+            float(row["value"]),
+            float(row2["value"]),
+        )
+    for i in range(0, 6):
+        row = single_sorted.iloc[i + 16]
+        orchestrator_values_single[row.test_case] = (
+            float(row["value"]),
+            math.nan,
+        )
+    return orchestrator_values_single
+
+
 def bar_chart_by_platform_multi(sorted):
     orchestrator_values = {}
     for i in range(0, len(sorted), 3):
@@ -348,9 +462,15 @@ plt.rcParams.update({
 # ***** Create figures *****
 single_sorted = single.sort_values(["test_case", "platform"])
 multi_sorted = multi.sort_values(["test_case", "platform"])
+# wc_extra_sorted = wc_extra.sort_values(["platform", "test_case"])
+wc_extra_sorted = wc_extra.sort_values(["test_case", "platform"])
 multi_no_startup_sorted = multi_no_startup.sort_values(["test_case", "platform"])
 print(single_sorted)
 print(multi_sorted)
+
+print(single_sorted)
+print(multi_sorted)
+print(wc_extra_sorted)
 
 # ***** Bar charts by platform *****
 extra_labels = [
@@ -363,6 +483,7 @@ extra_labels = [
 single_values_platform = platform_single_values(single_sorted)
 multi_values_platform = bar_chart_by_platform_multi(multi_sorted)
 multi_values_platform_no_startup = bar_chart_by_platform_multi(multi_no_startup_sorted)
+multi_values_wc_extra = platform_single_values_wc_extra(wc_extra_sorted)
 platforms_single = ["K0s", "K3s"]
 platforms_multi = ["K0s", "K3s", "KubeEdge"]
 create_bar_plot(
@@ -395,6 +516,16 @@ create_bar_plot(
     130,
     3,
     fig_platform_multi_no_startup,
+)
+create_bar_plot(
+    platforms_single,
+    0.07,
+    multi_values_wc_extra,
+    "Orchestration cost by platform for additional measurements with wasmCloud",
+    50,
+    145,
+    3,
+    fig_platform_multi_wc_extra,
 )
 
 
