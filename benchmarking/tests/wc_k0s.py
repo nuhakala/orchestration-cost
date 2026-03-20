@@ -7,22 +7,25 @@ import tools.test_suite
 import definitions
 
 
-def run(scenario: int, parse: bool, multi: bool):
-    STATS_DIR = "wc-k0s-single"
+def run(scenario: int, parse: bool, multi: bool, dir = ""):
+    STATS_DIR = f"wc-k0s-single{dir}"
     GO_SERVICE = ""
     RUST_SERVICE = ""
-    if scenario == 1:
+    AI_SERVICE = ""
+    if scenario == 1 or scenario == 4:
         GO_SERVICE = f"{definitions.WORK_DIR}/wasmcloud-v2-infra/go-deploy-rep1.yaml"
         RUST_SERVICE = f"{definitions.WORK_DIR}/wasmcloud-v2-infra/rust-deploy-rep1.yaml"
+        AI_SERVICE = f"{definitions.WORK_DIR}/wasmcloud-v2-infra/ai-deploy-rep1.yaml"
     else:
         GO_SERVICE = f"{definitions.WORK_DIR}/wasmcloud-v2-infra/go-deploy-rep10.yaml"
         RUST_SERVICE = f"{definitions.WORK_DIR}/wasmcloud-v2-infra/rust-deploy-rep10.yaml"
+        AI_SERVICE = f"{definitions.WORK_DIR}/wasmcloud-v2-infra/ai-deploy-rep10.yaml"
     HOST_HEADER = "nuhakala.com"
     SC1_SLEEP = 10
     PID_KEYWORDS = ["k0ssingle", "wasmcloud"]
     PID_AMOUNT = 7
     if multi:
-        STATS_DIR = "wc-k0s-multi"
+        STATS_DIR = f"wc-k0s-multi{dir}"
         PID_KEYWORDS = ["k0smulti"]  # wasmcloud pids are in edge node
         PID_AMOUNT = 6
 
@@ -32,6 +35,7 @@ def run(scenario: int, parse: bool, multi: bool):
         PID_AMOUNT,
         GO_SERVICE,
         RUST_SERVICE,
+        AI_SERVICE,
         HOST_HEADER,
         SC1_SLEEP,
         scenario,

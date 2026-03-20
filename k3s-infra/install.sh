@@ -50,6 +50,7 @@ case $1 in
 		;;
 	uninstallcontrol) k3s-uninstall.sh ;;
 	uninstallagent) k3s-agent-uninstall.sh ;;
+	token) sudo cat /var/lib/rancher/k3s/server/node-token ;;
 
 	# If don't want to install systemd service
 	install) install_k3s ;;
@@ -65,6 +66,15 @@ case $1 in
 			--token "$2"
 			# --container-runtime-endpoint unix:///var/run/containerd/containerd.sock
 		;;
-	*) echo "wrong arg" ;;
-esac
+	*) cat <<EOF ;;
+Usage:
 
+	control            > start control plane
+	agent <ip> <token> > start agent node and join cluster
+	uninstallcontrol   > uninstall conrol plane node
+	uninstallagent     > uninstall agent node
+	install            > install K3s without creating systemd service and starting it
+	server             > start k3s server
+	worker             > start k3s agent
+EOF
+esac

@@ -6,11 +6,12 @@ import time
 import urllib.parse
 
 import definitions
-import tester
-import print_utils
+from . import tester
+from . import print_utils
 
 
 def benchmark(
+    base_dir: str,
     stats_dir: str,
     command: list[str],
     reset_command: list[str],
@@ -27,15 +28,17 @@ def benchmark(
     NOTE! When running wasmCloud tests, the extra 60 second waiting time must
     be added by uncommenting line 73.
 
+        base_dir - directory where stats_dir is located
         stats_dir - directory to save stats to
         command - command to run when starting workload
         reset_command - command to run when deleting workload
         pids - list of strings which contain the pids to watch
         host_header - HTTP host header to use when pinging endpoint
     """
-    folder = f"{definitions.SC2_PATH}/{stats_dir}"
+    folder = f"{base_dir}/{stats_dir}"
     control_plane_ip = definitions.HEY_SERVER_IP
     host_server_port = definitions.HOST_SERVER_PORT
+    host_server_endpoint = definitions.HOST_SERVER_ENDPOINT
     ping_endpoint = definitions.PING_ENDPOINT
     interface = definitions.INTERFACE
     scaledown_delay = definitions.SCALEDOWN_DELAY
@@ -56,13 +59,19 @@ def benchmark(
         "endpoint": ping_endpoint,
     }
     encoded_url = urllib.parse.urlencode(url_parameters)
-    url = f"http://{control_plane_ip}:{host_server_port}/?{encoded_url}"
+    url = f"http://{control_plane_ip}:{host_server_port}{host_server_endpoint}?{encoded_url}"
 
     # Wrap only hey command inside tester, as it is the only thing we want to
     # benchmark
     def test():
-        print("Waiting extra 20 seconds to capture more data before benchmark.")
-        time.sleep(20)
+        # -10 because that is already waited in tester.py
+        sleep_time = definitions.SC2_DEPLOY_TIME - 10
+        if sleep_time > 0:
+            print_utils.print_time_delay(
+                f"Waiting extra {sleep_time} seconds to capture more data before benchmark",
+                datetime.timedelta(seconds=sleep_time)
+            )
+            time.sleep(sleep_time)
 
         # Wasmcloud is too slow to deploy any instance in 30 seconds, I got
         # 503 for the first 2000 requests. Hence, add extra 60 seconds of wait

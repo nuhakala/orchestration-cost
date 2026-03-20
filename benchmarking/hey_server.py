@@ -18,9 +18,9 @@ from tools.writestats import StatWriter
 import definitions
 
 
-def on_request(host_header, stats_dir, ip_address, endpoint):
+def on_request(command, base_dir, stats_dir, length):
     # Start benchmark
-    hey_dir = f"{definitions.SC2_PATH}/{stats_dir}"
+    hey_dir = f"{base_dir}/{stats_dir}"
     hey_file = f"{hey_dir}/hey.csv"
     if not os.path.isdir(hey_dir):
         os.mkdir(hey_dir)
@@ -28,36 +28,14 @@ def on_request(host_header, stats_dir, ip_address, endpoint):
     print_start(f"Starting to test orchestrator with hey and logging to {hey_file}")
     writer = StatWriter(hey_file, "", 0)
 
-    TEST_LENGTH = 90  # seconds
-    CPUS = "4"
-    # Total RPS (or QPS) = CONCURRENT_WORKERS * QPS_WORKER
-    CONCURRENT_WORKERS = "10"
-    QPS_WORKER = "10"
-    COMMAND = [
-        "hey",
-        "-z",
-        f"{TEST_LENGTH}s",
-        "-c",
-        CONCURRENT_WORKERS,
-        "-cpus",
-        CPUS,
-        "-q",
-        QPS_WORKER,
-        "-disable-keepalive",
-        "-host",
-        host_header,
-        "-o=csv",
-        f"http://{ip_address}{endpoint}",
-    ]
-
     try:
-        print(f"Starting command '{COMMAND}'")
+        print(f"Starting command '{command}'")
         print_time_delay(
-            f"will run for {TEST_LENGTH} seconds",
-            datetime.timedelta(seconds=TEST_LENGTH),
+            f"will run for {length} seconds",
+            datetime.timedelta(seconds=length),
         )
         res = subprocess.run(
-            COMMAND,
+            command,
             text=True,
             check=True,
             capture_output=True,
@@ -65,7 +43,7 @@ def on_request(host_header, stats_dir, ip_address, endpoint):
         writer.write_stat(res.stdout)
         print("Hey finished successfully")
     except Exception as e:
-        print_red(f"ERROR: running test produced error: {e}")
+        print_red(f"ERROR: running test produced error: {length}")
         return
 
 
@@ -80,7 +58,52 @@ class Handler(BaseHTTPRequestHandler):
         ip_address = params.get("ipaddress", [""])[0]
         endpoint = params.get("endpoint", [""])[0]
 
-        on_request(header, folder, ip_address, endpoint)
+        TEST_LENGTH = 90  # seconds
+        CPUS = "4"
+        # Total RPS (or QPS) = CONCURRENT_WORKERS * QPS_WORKER
+        CONCURRENT_WORKERS = "10"
+        QPS_WORKER = "10"
+        COMMAND = [
+            "hey",
+            "-z",
+            f"{TEST_LENGTH}s",
+            "-c",
+            CONCURRENT_WORKERS,
+            "-cpus",
+            CPUS,
+            "-q",
+            QPS_WORKER,
+            "-disable-keepalive",
+            "-host",
+            header,
+            "-o=csv",
+            f"http://{ip_address}{endpoint}",
+        ]
+        AI_COMMAND = [
+            "hey",
+            "-m",
+            "POST",
+            "-D",
+            f"{definitions.WORK_DIR}/servers/fixture/images/dog.jpg",
+            "-z",
+            f"{TEST_LENGTH}s",
+            "-c",
+            CONCURRENT_WORKERS,
+            "-cpus",
+            CPUS,
+            "-q",
+            QPS_WORKER,
+            "-disable-keepalive",
+            "-host",
+            header,
+            "-o=csv",
+            f"http://{ip_address}{endpoint}",
+        ]
+
+        if urlparse(self.path).path == "/ai":
+            on_request(AI_COMMAND, definitions.AI_SC2, folder, TEST_LENGTH)
+        else:
+            on_request(COMMAND, definitions.SC2_PATH, folder, TEST_LENGTH)
 
         self.send_response(200)
         self.end_headers()

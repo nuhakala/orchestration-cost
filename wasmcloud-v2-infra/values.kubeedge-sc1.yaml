@@ -29,10 +29,11 @@ runtime:
       http:
         enabled: true
         port: 80
-      resources:
-        requests:
-          memory: "64Mi"
-          cpu: "200m" # can't have 250 because then can't have 15 pods, not enough cpu
-        limits:
-          memory: "512Mi"
-          cpu: "500m" # 0.5 CPU cores
+      # Used only in non-ai workloads
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "200m" # can't have 250 because then can't have 15 pods, not enough cpu
+      #   limits:
+      #     memory: "512Mi"
+      #     cpu: "500m" # 0.5 CPU cores

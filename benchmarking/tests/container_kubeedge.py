@@ -8,16 +8,17 @@ import tools.test_suite
 import definitions
 
 
-def run(scenario: int, parse: bool, multi: bool):
-    STATS_DIR = "container-kubeedge-single"
+def run(scenario: int, parse: bool, multi: bool, dir = ""):
+    STATS_DIR = f"container-kubeedge-single{dir}"
     GO_SERVICE = f"{definitions.WORK_DIR}/native-infra/go-kubeedge-deploy.yaml"
     RUST_SERVICE = f"{definitions.WORK_DIR}/native-infra/rust-kubeedge-deploy.yaml"
+    AI_SERVICE = f"{definitions.WORK_DIR}/native-infra/ai-kubeedge-deploy.yaml"
     HOST_HEADER = "nuhakala.com"
     SC1_SLEEP = 20
     PID_KEYWORDS = ["kubeedge"]
     PID_AMOUNT = 6
     if multi:
-        STATS_DIR = "container-kubeedge-multi"
+        STATS_DIR = f"container-kubeedge-multi{dir}"
         PID_KEYWORDS = ["kubeedge"]
         PID_AMOUNT = 6
 
@@ -27,6 +28,7 @@ def run(scenario: int, parse: bool, multi: bool):
         PID_AMOUNT,
         GO_SERVICE,
         RUST_SERVICE,
+        AI_SERVICE,
         HOST_HEADER,
         SC1_SLEEP,
         scenario,

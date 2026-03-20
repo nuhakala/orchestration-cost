@@ -7,16 +7,17 @@ import tools.test_suite
 import definitions
 
 
-def run(scenario: int, parse: bool, multi):
-    STATS_DIR = "knative-k3s-single"
+def run(scenario: int, parse: bool, multi, dir = ""):
+    STATS_DIR = f"knative-k3s-single{dir}"
     GO_SERVICE = f"{definitions.WORK_DIR}/knative-infra/go-service.yaml"
     RUST_SERVICE = f"{definitions.WORK_DIR}/knative-infra/rust-service.yaml"
+    AI_SERVICE = f"{definitions.WORK_DIR}/knative-infra/ai-service.yaml"
     HOST_HEADER = "knative-test.default.nuhakala.com"
     SC1_SLEEP = 60
     PID_KEYWORDS = ["k3s", "knative"]
     PID_AMOUNT = 7
     if multi:
-        STATS_DIR = "knative-k3s-multi"
+        STATS_DIR = f"knative-k3s-multi{dir}"
         PID_KEYWORDS = ["k3s"]  # knative stuff is at worker
         PID_AMOUNT = 1
 
@@ -26,6 +27,7 @@ def run(scenario: int, parse: bool, multi):
         PID_AMOUNT,
         GO_SERVICE,
         RUST_SERVICE,
+        AI_SERVICE,
         HOST_HEADER,
         SC1_SLEEP,
         scenario,

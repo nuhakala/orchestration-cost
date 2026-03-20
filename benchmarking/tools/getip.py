@@ -1,6 +1,6 @@
 import subprocess
 
-import print_utils
+from . import print_utils
 
 
 def get_ip_starting(ip_start) -> str:

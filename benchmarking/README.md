@@ -22,3 +22,23 @@ root are meant to be invoked directly.
   startup times.
 
 For more detailed usage instructions, consult the individual files.
+
+# Data
+
+All the collected data is under `./data`
+
+- `./data/ai-sc1/` Scenario 1 multi-node data for AI workload
+- `./data/ai-sc1-single/` Scenario 1 single-node data for AI workload. No
+  figures made out of this.
+- `./data/ai-sc2/` Scenario 2 multi-node data for AI workload
+- `./data/sc1-extra-wc-data-single/` Extra wasmCloud single-node data. No
+  figures made out of this. Only parsed in `./print_startups.py`
+- `./data/sc1-extra-wc-data-multi/` Extra wasmCloud multi-node data. This is
+  used in figures and tables.
+- `./data/scenario1/` Artificial workload scenario 1 data. Both single- and
+  multi-node.
+- `./data/scenario2/` Artificial workload scenario 2 data. Both single- and
+  multi-node.
+
+In hindsight, would have been better to create different folders for single- and
+multi-node results for artificial workload as well.

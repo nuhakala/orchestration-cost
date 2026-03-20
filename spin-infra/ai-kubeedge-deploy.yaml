@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spin-ai-deployment
+  labels:
+    app: spin-ai-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spin-ai-app
+  template:
+    metadata:
+      labels:
+        app: spin-ai-app
+    spec:
+      containers:
+      - name: spin
+        image: ghcr.io/fermyon/spin:v2.7.0
+        args: [
+          "up",
+          "-k",
+          "--listen",
+          "0.0.0.0:8080",
+          "-f",
+          "192.168.68.54:5000/spin-ai-server:latest"
+        ]
+        ports:
+        - containerPort: 8080
+          name: http-0
+      nodeSelector:
+        # node-role.kubernetes.io/control-plane: ""
+        node-role.kubernetes.io/edge: ""
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spin-ai-server
+spec:
+  selector:
+    app: spin-ai-app
+  ports:
+    - name: http-0
+      port: 12345
+      protocol: TCP
+      targetPort: 8080
+---
+apiVersion: k8s.nginx.org/v1
+kind: VirtualServer
+metadata:
+  name: spin-ai-vs
+  namespace: default
+spec:
+  host: "nuhakala.com"
+  upstreams:
+  - name: spin-ai-server
+    service: spin-ai-server
+    port: 12345
+    use-cluster-ip: true
+  routes:
+  - path: /
+    action:
+      proxy:
+        upstream: spin-ai-server
+        requestHeaders:
+          set:
+          - name: Host
+            value: spin-ai-server.nginx-ingress.svc.cluster.local
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: spin-ai-rule
+spec:
+  host: spin-ai-server
+  trafficPolicy:
+    loadBalancer:
+      simple: RANDOM
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: spin-ai-hpa
+  namespace: default
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: spin-ai-deployment
+  minReplicas: 1
+  maxReplicas: 100
+  metrics:
+  - type: External
+    external:
+      metric:
+        name: http_requests_per_second
+      target:
+        type: Value
+        averageValue: 500m
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 60
+---

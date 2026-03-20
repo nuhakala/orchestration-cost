@@ -5,14 +5,14 @@ import os
 
 sys.path.insert(0, os.path.abspath(".."))
 sys.path.insert(0, os.path.abspath("../tools"))
-from tools import statistics_utils
-import tools.curve_utils
-import tools.print_utils
+from . import statistics_utils
+from . import curve_utils
+from . import print_utils
 import definitions
 
 
-def __check_folder(stats_dir):
-    folder = f"{definitions.SC2_PATH}/{stats_dir}"
+def __check_folder_basedir(base_dir, stats_dir):
+    folder = f"{base_dir}/{stats_dir}"
     print(f"Reading data from {folder}")
     empty = True
     for _ in os.scandir(folder):
@@ -109,7 +109,7 @@ def __hey_plot(hey_file, name, save, plot_title):
 def __create_curve(name, figtitle, save, file, cpu_curve, show_legend, title=""):
     fig_size = (definitions.PLOT_WIDTH, 2 * definitions.PLOT_HEIGHT)
     fig, ax = plt.subplots(2, 1, layout="constrained", figsize=fig_size, sharey=True)
-    tools.curve_utils.create_curve(
+    curve_utils.create_curve(
         file, cpu_curve, ax[0], ax[1], "", show_legend, title
     )
 
@@ -122,7 +122,7 @@ def __create_curve(name, figtitle, save, file, cpu_curve, show_legend, title="")
 def __create_int_curve(name, figtitle, save, file, show_legend, title=""):
     fig_size = (definitions.PLOT_WIDTH, 2 * definitions.PLOT_HEIGHT)
     fig, ax = plt.subplots(1, 1, layout="constrained", figsize=fig_size, sharey=True)
-    tools.curve_utils.create_int_curve(file, ax, show_legend, title)
+    curve_utils.create_int_curve(file, ax, show_legend, title)
 
     fig.suptitle(figtitle)
     ax.legend(loc="upper left", bbox_to_anchor=(0, -0.1), ncols=3, handleheight=2)
@@ -132,17 +132,18 @@ def __create_int_curve(name, figtitle, save, file, show_legend, title=""):
     plt.show()
 
 
-def create_curves(stats_dir, multi):
+def create_curves(base_dir, stats_dir, multi):
     """
     Creates multiple curves visualizing the scenario 2 data in given stats dir.
     Note, that this can be made to also save the figures into files, but it
     requires changing the variable in the script.
 
+        base_dir - the dir where stats_dir is located
         stats_dir - statistics dir
         multi - whether it is multi or single-node test
     """
     SAVE_FIGURES = False
-    folder = __check_folder(stats_dir)
+    folder = __check_folder_basedir(base_dir, stats_dir)
 
     hey_file = f"{folder}/hey.csv"
     int_file = f"{folder}/interface.csv"
@@ -165,14 +166,15 @@ def create_curves(stats_dir, multi):
         __create_curve(f"sc2-control-mem", stats_dir, SAVE_FIGURES, perf_file, False, False, f"worker")
 
 
-def parse_stats(stats_dir, multi):
+def parse_stats(base_dir, stats_dir, multi):
     """
     Parses statistics from the statistics dir and prints them.
 
+        base_dir - the dir where stats_dir is located
         stats_dir - the data directory
         multi - whether to print worker stats or not
     """
-    folder = __check_folder(stats_dir)
+    folder = __check_folder_basedir(base_dir, stats_dir)
 
     hey_file = f"{folder}/hey.csv"
     int_file = f"{folder}/interface.csv"
@@ -182,19 +184,20 @@ def parse_stats(stats_dir, multi):
 
     __hey_stats(hey_file)
 
-    tools.print_utils.print_purple(f"Performance data {stats_dir}:")
+    print_utils.print_purple(f"Performance data {stats_dir}:")
     statistics_utils.calculate_and_print_perf([perf_file], multi, "control")
-    tools.print_utils.print_purple(f"Interface data {stats_dir}:")
+    print_utils.print_purple(f"Interface data {stats_dir}:")
     statistics_utils.calculate_and_print_int([int_file], "control")
 
     if multi:
-        tools.print_utils.print_purple(f"Performance data {stats_dir}:")
+        print_utils.print_purple(f"Performance data {stats_dir}:")
         statistics_utils.calculate_and_print_perf([worker_perf_file], multi, "worker")
-        tools.print_utils.print_purple(f"Interface data {stats_dir}:")
+        print_utils.print_purple(f"Interface data {stats_dir}:")
         statistics_utils.calculate_and_print_int([worker_int_file], "worker")
 
 
 def print_latex(
+    base_dir,
     stats_dir,
     multi,
     single_hey,
@@ -212,6 +215,7 @@ def print_latex(
     separately, as we want to have separate files for multi-node data and
     single-node data.
 
+        base_dir - the dir where stats_dir is located
         stats_dir - the data directory
         multi - whether to print worker stats or not
         single_hey - save file for single-node hey data
@@ -223,7 +227,7 @@ def print_latex(
         multi_control_int - save file for control plane interface data with multiple nodes
         multi_worker_int - save file for worker node interface data with multiple nodes
     """
-    folder = __check_folder(stats_dir)
+    folder = __check_folder_basedir(base_dir, stats_dir)
 
     hey_file = f"{folder}/hey.csv"
     int_file = f"{folder}/interface.csv"
@@ -253,14 +257,15 @@ def print_latex(
             f.write(statistics_utils.get_latex_row_int([int_file], f"{stats_dir}"))
 
 
-def get_orch_cost_values(stats_dir, metric: statistics_utils.OrchCostMetric):
+def get_orch_cost_values(base_dir, stats_dir, metric: statistics_utils.OrchCostMetric):
     """
     Parses scenario 2 statistics and saves them to the metric-object.
 
+        base_dir - the dir where stats_dir is located
         stats_dir - directory to read stats from
         metric - statistics_utils.OrchCostMetric object
     """
-    folder = __check_folder(stats_dir)
+    folder = __check_folder_basedir(base_dir, stats_dir)
 
     perf_file = f"{folder}/perf.csv"
     worker_perf_file = f"{folder}/worker-perf.csv"
@@ -282,5 +287,5 @@ def get_orch_cost_values(stats_dir, metric: statistics_utils.OrchCostMetric):
 if __name__ == "__main__":
     folder = sys.argv[1]
     multi = sys.argv[2] == "true"
-    create_curves(folder, multi)
-    parse_stats(folder, multi)
+    create_curves(definitions.SC2_PATH, folder, multi)
+    parse_stats(definitions.SC2_PATH, folder, multi)

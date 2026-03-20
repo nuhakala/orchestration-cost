@@ -3,19 +3,20 @@ import time
 import subprocess
 
 import definitions
-import endpoint
-import writestats
-import tester
-import print_utils
+from . import endpoint
+from . import writestats
+from . import tester
+from . import print_utils
 
 
 def benchmark(
-    stats_dir: str,
+    folder: str,
     iter: int,
     pids: list[str],
     command: list[str],
     reset_command: list[str],
     host_header: str,
+    ai_workload: bool,
 ):
     """
     Scenario 1 benchmark
@@ -23,17 +24,19 @@ def benchmark(
     Measures how long it take for endpoint to be alive from running the given
     command.
 
-        stats_dir - directory to save stats to
+        folder - directory to save stats to
         iter - iteration, just a number to track which iteration out of 10 is going
         pids - list of strings which contain the pids to watch
         command - command to run when starting workload
         reset_command - command to run when deleting workload
         host_header - HTTP host header to use when pinging endpoint
     """
-    folder = f"{definitions.SC1_PATH}/{stats_dir}"
+    # folder = f"{definitions.SC1_PATH}/{stats_dir}"
     interface = definitions.INTERFACE
     timeout = definitions.TIMEOUT
     endpoints = [definitions.SERVICE_ENDPOINT]
+    if ai_workload:
+        endpoints = [definitions.AI_ENDPOINT]
 
     if not os.path.isdir(folder):
         os.mkdir(folder)
@@ -47,6 +50,7 @@ def benchmark(
     stat_file = f"{fpref}-startup.txt"
     interface_file = f"{fpref}-interface.csv"
     writer = writestats.StatWriter(stat_file, "", 0)
+    image_path = f"{definitions.WORK_DIR}/servers/fixture/images/dog.jpg"
 
     def test():
         start_time = time.time_ns()
@@ -68,7 +72,13 @@ def benchmark(
 
             for end in endpoints:
                 address = f"http://{end}"
-                if endpoint.ping_endpoint(address, host_header, 10):
+                success = False
+                if ai_workload:
+                    success = endpoint.recognize_image(address, host_header, image_path, timeout)
+                else:
+                    success = endpoint.ping_endpoint(address, host_header, 10)
+
+                if success:
                     print_utils.print_green("Endpoint found")
                     writer.write_time(delta_time)
                     return
@@ -83,7 +93,7 @@ def benchmark(
 
     print("Undeploying app")
     try:
-        res = subprocess.run(
+        _ = subprocess.run(
             reset_command,
             text=True,
             check=True,

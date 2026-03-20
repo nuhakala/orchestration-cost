@@ -1,0 +1,25 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: knative-test
+  namespace: default
+spec:
+  template:
+    metadata:
+      annotations:
+        # Knative concurrency-based autoscaling (default).
+        # autoscaling.knative.dev/class: kpa.autoscaling.knative.dev
+        autoscaling.knative.dev/metric: rps
+        # autoscaling.knative.dev/metric: "cpu"
+        # Target 1 requests in-flight per pod.
+        autoscaling.knative.dev/target: "0.5"
+        # Disable scale to zero with a min scale of 1.
+        autoscaling.knative.dev/min-scale: "1"
+        # Limit scaling to 100 pods.
+        autoscaling.knative.dev/max-scale: "100"
+    spec:
+      containers:
+        # - image: 10.164.178.1:5000/rust-server-ai
+        - image: 192.168.68.54:5000/rust-server-ai
+          # imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent

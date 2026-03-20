@@ -38,6 +38,10 @@ def on_start(scenario, stats_dir, perf_file, int_file):
         folder = f"{definitions.SC1_PATH}/{stats_dir}"
     elif scenario == 2:
         folder = f"{definitions.SC2_PATH}/{stats_dir}"
+    elif scenario == 4:
+        folder = f"{definitions.AI_SC1}/{stats_dir}"
+    elif scenario == 5:
+        folder = f"{definitions.AI_SC2}/{stats_dir}"
     if not os.path.isdir(folder):
         os.mkdir(folder)
 

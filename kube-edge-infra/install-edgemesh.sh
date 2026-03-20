@@ -9,7 +9,7 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 PSK_CIPHER=$(openssl rand -base64 32)
 
-if [[ ! -d ./edgemesh ]]; then
+if [[ ! -d ${SCRIPT_DIR}/edgemesh ]]; then
 	git clone -b release-1.17 https://github.com/kubeedge/edgemesh.git
 fi
 
@@ -45,6 +45,6 @@ case $1 in
 	mesh) edgemesh ;;
 	gate) gateway ;;
 	*)
-		echo "Must provide true/false as param to install gateway or not."
+		echo "Usage: both or mesh or gate"
 		;;
 esac

@@ -48,10 +48,12 @@ curl_knative() {
 	curl -H "Host: knative-go.default.nuhakala.com" "$(get_ip)"
 }
 
-curl_faas() {
-	# ip_address=$(get_ip)
-	ip_address=192.168.0.1
-	curl "${ip_address}:8080/function/faas-go-server"
+curl_endpoint() {
+	ip_address=$(get_ip)
+	curl -X POST "http://${ip_address}:31080/squeezenet" \
+		-H "Content-Type: application/octet-stream" \
+		--data-binary "@/home/ubuntu/orch-cost-tools/servers/fixture/images/grace_hopper.jpg" \
+		-H "Host: nuhakala.com"
 }
 
 case $1 in
@@ -59,7 +61,8 @@ case $1 in
 	ip) get_ip ;;
 	mp) multipass_deploy "$@" ;;
 	kc) curl_knative ;;
-	fc) curl_faas ;;
+	curl) curl_endpoint ;;
+	fuse) find . -type f -name ".fuse*" -delete ;;
 	*)
 		cat <<EOF
 Usage:

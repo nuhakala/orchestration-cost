@@ -1,0 +1,28 @@
+apiVersion: runtime.wasmcloud.dev/v1alpha1
+kind: WorkloadDeployment
+metadata:
+  name: wash-ai
+spec:
+  replicas: 1
+  template:
+    spec:
+      hostSelector:
+        hostgroup: default
+      components:
+        - name: wasmcloud-ai
+          image: 10.164.178.1:5000/wash-ai:0.1.0
+          localResources:
+            volumeMounts:
+            - name: fixture
+              mountPath: fixture
+      hostInterfaces:
+        - namespace: wasi
+          package: http
+          interfaces:
+            - incoming-handler
+          config:
+            host: nuhakala.com
+      volumes:
+      - name: fixture
+        hostPath:
+          path: "/fixture"

@@ -1,3 +1,7 @@
+"""
+This file is specialized to provide data for printing the extra wc data.
+Not really meant to be used for anything else.
+"""
 import pandas as pd
 
 import definitions
@@ -9,9 +13,9 @@ from definitions import (
     folders_k0s_go_rc7,
     folders_k0s_rust_rc7,
 )
-from tools import statistics_utils
+from . import statistics_utils
 
-STATS_DIR = definitions.WC_EXTRA_LOC
+STATS_DIR = definitions.WC_EXTRA_LOC_MULTI
 
 
 def get_indicators(stats_dir, folders_go, folders_rust):
@@ -35,7 +39,6 @@ def get_indicators(stats_dir, folders_go, folders_rust):
 
 
 def get_platform_indicators():
-
     k0s_indicators = get_indicators(STATS_DIR, folders_k0s_go, folders_k0s_rust)
     k0s_rc7_indicators = get_indicators(STATS_DIR, folders_k0s_go_rc7, folders_k0s_rust_rc7)
     k3s_indicators = get_indicators(STATS_DIR, folders_k3s_go, folders_k3s_rust)

@@ -1,7 +1,7 @@
 import subprocess
 import sys
 
-import print_utils
+from . import print_utils
 
 """
 ***** Common *****

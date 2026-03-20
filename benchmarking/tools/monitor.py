@@ -2,8 +2,8 @@ import subprocess
 import time
 import sys
 
-import writestats
-import print_utils
+from . import writestats
+from . import print_utils
 
 # Note! according to manual pages "man 5 proc_stat" and "man 5 proc_pid_stat"
 # and my understanding of time management (clock ticks = unit of USER_HZ), the

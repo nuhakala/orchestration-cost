@@ -8,17 +8,18 @@ import tools.test_suite
 import definitions
 
 
-def run(scenario: int, parse: bool, multi: bool):
-    STATS_DIR = "container-k3s-single"
+def run(scenario: int, parse: bool, multi: bool, dir = ""):
+    STATS_DIR = f"container-k3s-single{dir}"
     GO_SERVICE = f"{definitions.WORK_DIR}/native-infra/go-hpa-deploy.yaml"
     RUST_SERVICE = f"{definitions.WORK_DIR}/native-infra/rust-hpa-deploy.yaml"
+    AI_SERVICE = f"{definitions.WORK_DIR}/native-infra/ai-hpa-deploy.yaml"
     HOST_HEADER = "nuhakala.com"
     # It takes some time for knative to delete the pod, so have 40 second break
     SC1_SLEEP = 40
     PID_KEYWORDS = ["k3s"]
     PID_AMOUNT = 1
     if multi:
-        STATS_DIR = "container-k3s-multi"
+        STATS_DIR = f"container-k3s-multi{dir}"
         PID_KEYWORDS = ["k3s"]
         PID_AMOUNT = 1
 
@@ -28,6 +29,7 @@ def run(scenario: int, parse: bool, multi: bool):
         PID_AMOUNT,
         GO_SERVICE,
         RUST_SERVICE,
+        AI_SERVICE,
         HOST_HEADER,
         SC1_SLEEP,
         scenario,

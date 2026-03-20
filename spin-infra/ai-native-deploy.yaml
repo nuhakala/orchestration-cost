@@ -1,0 +1,50 @@
+apiVersion: core.spinkube.dev/v1alpha1
+kind: SpinApp
+metadata:
+  name: spin-ai-server
+spec:
+  image: "192.168.68.54:5000/spin-ai-server:latest"
+  enableAutoscaling: true
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: spin-go-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: nuhakala.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: spin-ai-server
+            port:
+              number: 80
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: spin-ai-hpa
+  namespace: default
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: spin-ai-server
+  minReplicas: 1
+  maxReplicas: 100
+  metrics:
+  - type: External
+    external:
+      metric:
+        name: http_requests_per_second
+      target:
+        type: Value
+        averageValue: 500m
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 60
+---

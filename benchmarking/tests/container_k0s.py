@@ -8,16 +8,17 @@ import tools.test_suite
 import definitions
 
 
-def run(scenario: int, parse: bool, multi: bool):
-    STATS_DIR = "container-k0s-single"
+def run(scenario: int, parse: bool, multi: bool, dir = ""):
+    STATS_DIR = f"container-k0s-single{dir}"
     GO_SERVICE = f"{definitions.WORK_DIR}/native-infra/go-hpa-deploy.yaml"
     RUST_SERVICE = f"{definitions.WORK_DIR}/native-infra/rust-hpa-deploy.yaml"
+    AI_SERVICE = f"{definitions.WORK_DIR}/native-infra/ai-hpa-deploy.yaml"
     HOST_HEADER = "nuhakala.com"
     SC1_SLEEP = 20
     PID_KEYWORDS = ["k0ssingle"]
     PID_AMOUNT = 5
     if multi:
-        STATS_DIR = "container-k0s-multi"
+        STATS_DIR = f"container-k0s-multi{dir}"
         PID_KEYWORDS = ["k0smulti"]
         PID_AMOUNT = 6
 
@@ -27,6 +28,7 @@ def run(scenario: int, parse: bool, multi: bool):
         PID_AMOUNT,
         GO_SERVICE,
         RUST_SERVICE,
+        AI_SERVICE,
         HOST_HEADER,
         SC1_SLEEP,
         scenario,

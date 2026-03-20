@@ -8,17 +8,18 @@ import tools.test_suite
 import definitions
 
 
-def run(scenario: int, parse: bool, multi: bool):
-    STATS_DIR = "knative-k0s-single"
+def run(scenario: int, parse: bool, multi: bool, dir = ""):
+    STATS_DIR = f"knative-k0s-single{dir}"
     GO_SERVICE = f"{definitions.WORK_DIR}/knative-infra/go-service.yaml"
     RUST_SERVICE = f"{definitions.WORK_DIR}/knative-infra/rust-service.yaml"
+    AI_SERVICE = f"{definitions.WORK_DIR}/knative-infra/ai-service.yaml"
     HOST_HEADER = "knative-test.default.nuhakala.com"
     # It takes some time for knative to delete the pod, so have 40 second break
     SC1_SLEEP = 60
     PID_KEYWORDS = ["k0ssingle", "knative"]
     PID_AMOUNT = 11
     if multi:
-        STATS_DIR = "knative-k0s-multi"
+        STATS_DIR = f"knative-k0s-multi{dir}"
         PID_KEYWORDS = ["k0smulti"]  # knative stuff is at worker
         PID_AMOUNT = 6
 
@@ -28,6 +29,7 @@ def run(scenario: int, parse: bool, multi: bool):
         PID_AMOUNT,
         GO_SERVICE,
         RUST_SERVICE,
+        AI_SERVICE,
         HOST_HEADER,
         SC1_SLEEP,
         scenario,

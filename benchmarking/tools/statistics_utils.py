@@ -4,7 +4,7 @@ import sys
 import pandas as pd
 from dataclasses import dataclass
 
-from tools.print_utils import print_purple
+from .print_utils import print_purple
 
 
 @dataclass
@@ -70,6 +70,8 @@ class OrchCostMetric:
         # Fix spin naming
         res = res.replace(r"spin-rust", "spin-cont-rust")
         res = res.replace(r"spin-go", "spin-cont-go")
+        if res == "spin":
+            res = "spin-cont"
         return res
 
     def calculate_metric_without_startup(self):

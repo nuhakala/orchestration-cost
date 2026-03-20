@@ -1,0 +1,11 @@
+[package]
+name = "app"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+rocket = "0.5.1"
+tract-onnx = "0.22.1"
+image = "0.24.1"
+smallvec = "1.15.1"
+compute = "0.2.3"

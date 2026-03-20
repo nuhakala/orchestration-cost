@@ -1,7 +1,8 @@
 import time
 import sys
 
-import writestats
+from . import print_utils
+from . import writestats
 
 
 def __get_stats(interface):
@@ -19,6 +20,7 @@ def __get_stats(interface):
                 int(sent + received) / 1024, 2
             )  # oops, should not divide by 1024 :D
             return [sent, received, total]
+    print_utils.print_red(f"No interface {interface} found")
     return ["", "", ""]
 
 

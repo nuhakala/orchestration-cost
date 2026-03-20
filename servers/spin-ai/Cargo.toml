@@ -1,0 +1,20 @@
+[package]
+name = "spin-ai"
+authors = ["Nuutti Hakala <nuutti.hakala@est.tech>"]
+description = "Image recognition with Spin in WASM"
+version = "0.1.0"
+rust-version = "1.78"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+anyhow = "1"
+spin-sdk = "5.0.0"
+tract-onnx = "0.22.1"
+image = "0.24.1"
+smallvec = "1.15.1"
+compute = "0.2.3"
+
+[workspace]

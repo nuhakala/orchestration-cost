@@ -8,22 +8,25 @@ import tools.test_suite
 import definitions
 
 
-def run(scenario: int, parse: bool, multi: bool):
-    STATS_DIR = "wc-kubeedge-single"
+def run(scenario: int, parse: bool, multi: bool, dir = ""):
+    STATS_DIR = f"wc-kubeedge-single{dir}"
     GO_SERVICE = ""
     RUST_SERVICE = ""
-    if scenario == 1:
+    AI_SERVICE = ""
+    if scenario == 1 or scenario == 4:
         GO_SERVICE = f"{definitions.WORK_DIR}/wasmcloud-v2-infra/go-kubeedge-rep1.yaml"
         RUST_SERVICE = f"{definitions.WORK_DIR}/wasmcloud-v2-infra/rust-kubeedge-rep1.yaml"
+        AI_SERVICE = f"{definitions.WORK_DIR}/wasmcloud-v2-infra/ai-kubeedge-rep1.yaml"
     else:
         GO_SERVICE = f"{definitions.WORK_DIR}/wasmcloud-v2-infra/go-kubeedge-rep10.yaml"
         RUST_SERVICE = f"{definitions.WORK_DIR}/wasmcloud-v2-infra/rust-kubeedge-rep10.yaml"
+        AI_SERVICE = f"{definitions.WORK_DIR}/wasmcloud-v2-infra/ai-kubeedge-rep10.yaml"
     HOST_HEADER = "nuhakala.com"
     SC1_SLEEP = 20
     PID_KEYWORDS = ["kubeedge", "wasmcloud"]
     PID_AMOUNT = 8
     if multi:
-        STATS_DIR = "wc-kubeedge-multi"
+        STATS_DIR = f"wc-kubeedge-multi{dir}"
         PID_KEYWORDS = ["kubeedge", "wasmcloud"]
         PID_AMOUNT = 8
 
@@ -33,6 +36,7 @@ def run(scenario: int, parse: bool, multi: bool):
         PID_AMOUNT,
         GO_SERVICE,
         RUST_SERVICE,
+        AI_SERVICE,
         HOST_HEADER,
         SC1_SLEEP,
         scenario,

@@ -1,8 +1,8 @@
 import threading
 import time
 
-import monitor
-import interface
+from . import monitor
+from . import interface
 
 
 def test(

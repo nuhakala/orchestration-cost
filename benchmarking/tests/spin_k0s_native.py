@@ -7,16 +7,17 @@ import tools.test_suite
 import definitions
 
 
-def run(scenario: int, parse: bool, multi: bool):
-    STATS_DIR = "spin-k0s-single-native"
+def run(scenario: int, parse: bool, multi: bool, dir = ""):
+    STATS_DIR = f"spin-k0s-single-native{dir}"
     GO_SERVICE = f"{definitions.WORK_DIR}/spin-infra/go-native-deploy.yaml"
     RUST_SERVICE = f"{definitions.WORK_DIR}/spin-infra/rust-native-deploy.yaml"
+    AI_SERVICE = f"{definitions.WORK_DIR}/spin-infra/ai-native-deploy.yaml"
     HOST_HEADER = "nuhakala.com"
     SC1_SLEEP = 10
     PID_KEYWORDS = ["k0ssingle", "spin"]
     PID_AMOUNT = 6
     if multi:
-        STATS_DIR = "spin-k0s-multi-native"
+        STATS_DIR = f"spin-k0s-multi-native{dir}"
         PID_KEYWORDS = ["k0smulti"]  # spin operator running in worker node
         PID_AMOUNT = 6
 
@@ -26,6 +27,7 @@ def run(scenario: int, parse: bool, multi: bool):
         PID_AMOUNT,
         GO_SERVICE,
         RUST_SERVICE,
+        AI_SERVICE,
         HOST_HEADER,
         SC1_SLEEP,
         scenario,

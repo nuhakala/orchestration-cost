@@ -1,0 +1,17 @@
+apiVersion: core.spinkube.dev/v1alpha1
+kind: SpinApp
+metadata:
+  name: spin-ai-server
+spec:
+  image: "10.164.178.1:5000/spin-ai-server:latest"
+  executor: containerd-shim-spin
+  replicas: 1
+  # volumeMounts:
+  # - name: fixture
+  #   mountPath: "fixture"
+  #   readOnly: true
+  # volumes:
+  # - name: fixture
+  #   hostPath:
+  #     path: "/home/ubuntu/orch-cost-tools/servers/fixture"
+  #     type: DirectoryOrCreate

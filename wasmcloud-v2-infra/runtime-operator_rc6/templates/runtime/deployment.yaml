@@ -48,6 +48,9 @@ spec:
             {{- if and (.webgpu) (.webgpu.enabled) }}
             - "--wasi-webgpu"
             {{- end }}
+          volumeMounts:
+            - name: fixture
+              mountPath: "fixture"
           imagePullPolicy: {{ $top.Values.runtime.image.pull_policy }}
           {{- with .resources }}
           resources:
@@ -63,6 +66,11 @@ spec:
             capabilities:
               drop:
                 - NET_RAW
+      volumes:
+        - name: fixture
+          hostPath:
+            path: "/home/nuutti/orch-cost-tools/servers/fixture"
+            type: DirectoryOrCreate
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       terminationGracePeriodSeconds: 0
