@@ -1,6 +1,6 @@
 import os
 
-WORK_DIR = os.path.expandvars("${HOME}/orch-cost-tools")
+WORK_DIR = os.path.expandvars("${HOME}/git/omat/orch-cost-tools")
 ROOT_DIR = os.path.join(WORK_DIR, "benchmarking")
 SC1_PATH = os.path.join(ROOT_DIR, "data/scenario1")
 SC2_PATH = os.path.join(ROOT_DIR, "data/scenario2")
@@ -26,13 +26,16 @@ SC2_MINUTES = 5
 SC2_DEPLOY_TIME = 300
 
 # For data processing, save location for latex tables
-LATEX_TABLE_LOC = "~/thesis/data-tables"
-LATEX_TABLE_LOC = os.path.expanduser(LATEX_TABLE_LOC)
-FIGURE_DIR = "~/thesis/thesis-images"
-FIGURE_DIR = os.path.expanduser(FIGURE_DIR)
+SAVE_DIR = os.path.expandvars("${HOME}/git/omat/paper-orch-cost")
+LATEX_TABLE_LOC = os.path.join(SAVE_DIR, "data-tables")
+FIGURE_DIR = os.path.join(SAVE_DIR, "images")
 latex_text_width = 404.02913
-PLOT_WIDTH = latex_text_width / 72
-PLOT_HEIGHT = PLOT_WIDTH * 0.6
+# For thesis
+# PLOT_WIDTH = latex_text_width / 72
+# PLOT_HEIGHT = PLOT_WIDTH * 0.6
+# For paper
+PLOT_WIDTH = 3.6
+PLOT_HEIGHT = PLOT_WIDTH * 0.7
 
 folders_k0s_go = [
     "wc-k0s-multi-go-2",

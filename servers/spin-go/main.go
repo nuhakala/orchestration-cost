@@ -13,6 +13,9 @@ func init() {
 	spinhttp.Handle(handleRequest)
 }
 
+// Below is exactly the same as in wasmcloud component
+
+
 func getWait(w http.ResponseWriter, _ *http.Request) {
 	sleep := time.Second * 3
 	time.Sleep(sleep)

@@ -7,6 +7,7 @@ The HTTP request must specify the following query parameters:
 - ipaddress   & IP address and port to make the requests to
 - endpoint    & HTTP request endpoint, for example /wait
 """
+
 import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import os

@@ -16,6 +16,8 @@ class OrchCostMetric:
     node_max_cpu_scale: float = 0
     process_rss_deploy: float = 0
     process_rss_scale: float = 0
+    node_mem_deploy: float = 0
+    node_mem_scale: float = 0
     startup: float = 0
 
     def multi_node(self):
@@ -32,11 +34,11 @@ class OrchCostMetric:
 
     def platform(self):
         if "k3s" in self.test_case:
-            return "k3s"
+            return "K3s"
         if "k0s" in self.test_case:
-            return "k0s"
+            return "K0s"
         if "kubeedge" in self.test_case:
-            return "kubeedge"
+            return "KubeEdge"
         return ""
 
     def orchestrator(self):
@@ -47,7 +49,7 @@ class OrchCostMetric:
         if "knative" in self.test_case:
             return "knative"
         if "wc" in self.test_case:
-            return "wc"
+            return "wasmCloud"
         if "container" in self.test_case:
             return "container"
         return ""
@@ -90,15 +92,32 @@ class OrchCostMetric:
 
     def calculate_metric(self):
         res = (
-            self.process_max_cpu_deploy * 2
-            + self.process_max_cpu_scale * 2
-            + self.node_max_cpu_deploy
-            + self.node_max_cpu_scale
-            + self.process_rss_deploy * 2
-            + self.process_rss_scale
-            + self.startup
+            self.process_max_cpu_deploy
+            * self.process_max_cpu_scale
+            * self.node_max_cpu_deploy
+            * self.node_max_cpu_scale
+            * self.process_rss_deploy
+            * self.process_rss_scale
+            * self.startup
         )
         root = res ** (1 / 7)
+        if root == 0:
+            return nan
+        return round(root, 2)
+
+    def calculate_metric_paper_version(self):
+        res = (
+            self.process_max_cpu_deploy
+            * self.process_max_cpu_scale
+            * self.node_max_cpu_deploy
+            * self.node_max_cpu_scale
+            * self.process_rss_deploy
+            * self.process_rss_scale
+            * self.node_mem_deploy
+            * self.node_mem_scale
+            # * self.startup
+        )
+        root = res ** (1 / 8)
         if root == 0:
             return nan
         return round(root, 2)
@@ -117,6 +136,7 @@ def __get_empty_perf_df():
             "max_glob": pd.Series(dtype="float"),
             "proc_rss": pd.Series(dtype="float"),
             "mem_total": pd.Series(dtype="float"),
+            "mem_used": pd.Series(dtype="float"),
         }
     )
 
@@ -178,6 +198,7 @@ def __append_file_stats(file: str, data: pd.DataFrame):
         "max_glob": round(diff_df["glob_perc"].max(), 2),
         "proc_rss": round(df["proc_rss"].mean(), 2),
         "mem_total": round(df["mem_total"].mean(), 2),
+        "mem_used": round((df["mem_total"] - df["mem_free"]).mean(), 2),
     }
 
     data.loc[len(data)] = row
@@ -338,6 +359,7 @@ def get_orch_cost_metrics(list_files: list[str]):
         float(df["max_proc"].mean()),
         float(df["max_glob"].mean()),
         float(df["proc_rss"].mean()),
+        float(df["mem_used"].mean()),
     )
 
 
@@ -355,6 +377,7 @@ def startup_time_values(folder):
             value = float(f.read().strip())
             values.append(value)
     return values
+
 
 def startup_time_indicators(folder):
     """

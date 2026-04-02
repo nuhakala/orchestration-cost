@@ -10,6 +10,7 @@ Scripts under `tests` are supposed to be invoked directly with `python3
 Scripts under `tools` are meant to be called from other scripts. Scripts in the
 root are meant to be invoked directly.
 
+- `test.py` is an entrypoint for running individual tests.
 - `hey_server.py` starts an HTTP server which will start hey load generator on
   request.
 - `worker_server.py` start HTTP server which will start/stop measuring system

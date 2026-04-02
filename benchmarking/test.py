@@ -5,6 +5,7 @@ test and provide more user-friendly CLI-experience.
 Does not do anything else than parse command line params and call the run
 functions defined in individual test files under ./tests/
 """
+
 import argparse
 import importlib
 
@@ -12,17 +13,14 @@ MODULE_MAP = {
     ("cont", "k0s"): "tests.container_k0s",
     ("cont", "k3s"): "tests.container_k3s",
     ("cont", "kube"): "tests.container_kubeedge",
-
     ("knative", "k0s"): "tests.knative_k0s",
     ("knative", "k3s"): "tests.knative_k3s",
     ("knative", "kube"): "tests.knative_kubeedge",
-
     ("spinnat", "k0s"): "tests.spin_k0s_native",
     ("spinnat", "k3s"): "tests.spin_k3s_native",
     ("spincon", "k0s"): "tests.spin_k0s_container",
     ("spincon", "k3s"): "tests.spin_k3s_container",
     ("spincon", "kube"): "tests.spin_kubeedge",
-
     ("wc", "k0s"): "tests.wc_k0s",
     ("wc", "k3s"): "tests.wc_k3s",
     ("wc", "kube"): "tests.wc_kubeedge",

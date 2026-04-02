@@ -39,8 +39,8 @@ THE SAME WE HAVE DEFINED!**
 # Prometheus adapter
 
 Prometheus adapter is version 0.12.0. The source code was downloaded from github
-and everything else than the deploy manifests were deleted. Prometheus version
-is 3.9.1 and nginx ingress version 5.3.1
+and everything else than the deploy manifests were deleted. Prometheus ingress
+was deployed using chart 2.4.1 and nginx ingress version 5.3.1
 
 To make it work (from fresh install):
 

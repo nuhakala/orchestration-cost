@@ -109,9 +109,7 @@ def __hey_plot(hey_file, name, save, plot_title):
 def __create_curve(name, figtitle, save, file, cpu_curve, show_legend, title=""):
     fig_size = (definitions.PLOT_WIDTH, 2 * definitions.PLOT_HEIGHT)
     fig, ax = plt.subplots(2, 1, layout="constrained", figsize=fig_size, sharey=True)
-    curve_utils.create_curve(
-        file, cpu_curve, ax[0], ax[1], "", show_legend, title
-    )
+    curve_utils.create_curve(file, cpu_curve, ax[0], ax[1], "", show_legend, title)
 
     fig.suptitle(figtitle)
     if save:
@@ -154,16 +152,68 @@ def create_curves(base_dir, stats_dir, multi):
     if multi:
         worker_perf_file = f"{folder}/worker-perf.csv"
         worker_int_file = f"{folder}/worker-int.csv"
-        __create_curve(f"sc2-control-perf", stats_dir, SAVE_FIGURES, perf_file, True, False, f"control")
-        __create_curve(f"sc2-control-mem", stats_dir, SAVE_FIGURES, perf_file, False, False, f"control")
-        __create_curve(f"sc2-worker-perf", stats_dir, SAVE_FIGURES, worker_perf_file, True, False, f"worker")
-        __create_curve(f"sc2-worker-mem", stats_dir, SAVE_FIGURES, worker_perf_file, False, False, f"worker")
+        __create_curve(
+            f"sc2-control-perf",
+            stats_dir,
+            SAVE_FIGURES,
+            perf_file,
+            True,
+            False,
+            f"control",
+        )
+        __create_curve(
+            f"sc2-control-mem",
+            stats_dir,
+            SAVE_FIGURES,
+            perf_file,
+            False,
+            False,
+            f"control",
+        )
+        __create_curve(
+            f"sc2-worker-perf",
+            stats_dir,
+            SAVE_FIGURES,
+            worker_perf_file,
+            True,
+            False,
+            f"worker",
+        )
+        __create_curve(
+            f"sc2-worker-mem",
+            stats_dir,
+            SAVE_FIGURES,
+            worker_perf_file,
+            False,
+            False,
+            f"worker",
+        )
 
-        __create_int_curve(f"sc2-control-int", stats_dir, SAVE_FIGURES, int_file, True, "control")
-        __create_int_curve(f"sc2-worker-int", stats_dir, SAVE_FIGURES, worker_int_file, True, "worker")
+        __create_int_curve(
+            f"sc2-control-int", stats_dir, SAVE_FIGURES, int_file, True, "control"
+        )
+        __create_int_curve(
+            f"sc2-worker-int", stats_dir, SAVE_FIGURES, worker_int_file, True, "worker"
+        )
     else:
-        __create_curve(f"sc2-control-perf", stats_dir, SAVE_FIGURES, perf_file, True, False, f"control")
-        __create_curve(f"sc2-control-mem", stats_dir, SAVE_FIGURES, perf_file, False, False, f"worker")
+        __create_curve(
+            f"sc2-control-perf",
+            stats_dir,
+            SAVE_FIGURES,
+            perf_file,
+            True,
+            False,
+            f"control",
+        )
+        __create_curve(
+            f"sc2-control-mem",
+            stats_dir,
+            SAVE_FIGURES,
+            perf_file,
+            False,
+            False,
+            f"worker",
+        )
 
 
 def parse_stats(base_dir, stats_dir, multi):
@@ -242,12 +292,16 @@ def print_latex(
         with open(multi_control_perf, "a", encoding="utf-8") as f:
             f.write(statistics_utils.get_latex_row_perf([perf_file], f"{stats_dir}"))
         with open(multi_worker_perf, "a", encoding="utf-8") as f:
-            f.write(statistics_utils.get_latex_row_perf([worker_perf_file], f"{stats_dir}"))
+            f.write(
+                statistics_utils.get_latex_row_perf([worker_perf_file], f"{stats_dir}")
+            )
 
         with open(multi_control_int, "a", encoding="utf-8") as f:
             f.write(statistics_utils.get_latex_row_int([int_file], f"{stats_dir}"))
         with open(multi_worker_int, "a", encoding="utf-8") as f:
-            f.write(statistics_utils.get_latex_row_int([worker_int_file], f"{stats_dir}"))
+            f.write(
+                statistics_utils.get_latex_row_int([worker_int_file], f"{stats_dir}")
+            )
     else:
         with open(single_hey, "a", encoding="utf-8") as f:
             f.write(__hey_stats_latex(hey_file, stats_dir))
@@ -271,17 +325,25 @@ def get_orch_cost_values(base_dir, stats_dir, metric: statistics_utils.OrchCostM
     worker_perf_file = f"{folder}/worker-perf.csv"
 
     if metric.multi_node():
-        c_max_proc, c_max_glob, c_proc_rss = statistics_utils.get_orch_cost_metrics([perf_file])
-        w_max_proc, w_max_glob, w_proc_rss = statistics_utils.get_orch_cost_metrics([worker_perf_file])
+        c_max_proc, c_max_glob, c_proc_rss, c_node_mem = (
+            statistics_utils.get_orch_cost_metrics([perf_file])
+        )
+        w_max_proc, w_max_glob, w_proc_rss, w_node_mem = (
+            statistics_utils.get_orch_cost_metrics([worker_perf_file])
+        )
         max_proc = (c_max_proc + w_max_proc) / 2
         max_glob = (c_max_glob + w_max_glob) / 2
         proc_rss = (c_proc_rss + w_proc_rss) / 2
+        node_mem = (c_node_mem + w_node_mem) / 2
     else:
-        max_proc, max_glob, proc_rss = statistics_utils.get_orch_cost_metrics([perf_file])
+        max_proc, max_glob, proc_rss, node_mem = statistics_utils.get_orch_cost_metrics(
+            [perf_file]
+        )
 
     metric.process_max_cpu_scale = max_proc
     metric.node_max_cpu_scale = max_glob
     metric.process_rss_scale = proc_rss
+    metric.node_mem_scale = node_mem
 
 
 if __name__ == "__main__":

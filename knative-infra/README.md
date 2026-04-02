@@ -22,7 +22,7 @@ properly exposed.
 # RPI
 
 Deploying knative to RPI does not work out of the box because kourier uses envoy
-proxy, and envoy proxy has some problem with RPI page size:
+proxy, and envoy proxy has some BS problem with RPI page size of whatever:
 https://github.com/envoyproxy/envoy/issues/23339
 
 Solution is to either recompile RPI kernel or build your own envoy image with

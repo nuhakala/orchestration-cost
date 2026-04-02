@@ -69,7 +69,7 @@ def benchmark(
         if sleep_time > 0:
             print_utils.print_time_delay(
                 f"Waiting extra {sleep_time} seconds to capture more data before benchmark",
-                datetime.timedelta(seconds=sleep_time)
+                datetime.timedelta(seconds=sleep_time),
             )
             time.sleep(sleep_time)
 

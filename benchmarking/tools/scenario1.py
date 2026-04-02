@@ -74,7 +74,9 @@ def benchmark(
                 address = f"http://{end}"
                 success = False
                 if ai_workload:
-                    success = endpoint.recognize_image(address, host_header, image_path, timeout)
+                    success = endpoint.recognize_image(
+                        address, host_header, image_path, timeout
+                    )
                 else:
                     success = endpoint.ping_endpoint(address, host_header, 10)
 

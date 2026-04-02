@@ -1,4 +1,4 @@
-IMAGE_NAME=rust-server
+IMAGE_NAME=rust-server-final-arm
 REGISTRY=192.168.68.54:5000
 
 all:

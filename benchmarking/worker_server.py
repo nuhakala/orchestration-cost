@@ -13,6 +13,7 @@ The base save location is definitions.SC2_PATH
 Furthermore, the script takes process specifiers as command line parameters,
 the available specifiers are in tools.getpids
 """
+
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import os
 import sys
@@ -30,6 +31,7 @@ stop_thread = False
 start_time = time.time_ns()
 threads = []
 pids = []
+
 
 def on_start(scenario, stats_dir, perf_file, int_file):
     # Start benchmark
@@ -55,7 +57,6 @@ def on_start(scenario, stats_dir, perf_file, int_file):
     global pids
 
     start_time = time.time_ns()
-
 
     # Stats thread
     threads.append(
@@ -86,6 +87,7 @@ def on_start(scenario, stats_dir, perf_file, int_file):
     for thread in threads:
         thread.start()
 
+
 def on_stop():
     stop_time = time.time_ns()
     delta_time = stop_time - start_time
@@ -96,7 +98,9 @@ def on_stop():
         thread.join()
     threads = []
     stop_thread = False
-    print_finish(f"Threads stopped, monitoring took {round(delta_time / 1000 / 1000 / 1000, 2)}s")
+    print_finish(
+        f"Threads stopped, monitoring took {round(delta_time / 1000 / 1000 / 1000, 2)}s"
+    )
 
 
 class Handler(BaseHTTPRequestHandler):

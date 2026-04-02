@@ -11,7 +11,10 @@ import tools.read_data_sc1
 import tools.read_data_sc2
 
 parser = argparse.ArgumentParser(description="Latex table CLI")
-parser.add_argument("--save", action=argparse.BooleanOptionalAction, help="save images", default=False)
+parser.add_argument("target", choices=["thesis", "paper"], help="Choose target")
+parser.add_argument(
+    "--save", action=argparse.BooleanOptionalAction, help="save images", default=False
+)
 args = parser.parse_args()
 
 SAVE_DIR = "./"
@@ -19,6 +22,7 @@ if args.save:
     SAVE_DIR = definitions.LATEX_TABLE_LOC
 
 all_files = []
+
 
 def perf_header(file):
     with open(file, "w", encoding="utf-8") as f:
@@ -158,12 +162,42 @@ for test_case in items:
 # Add the extra wc data to the table.
 # Needs to be done manually as they are averages of multiple sets
 extra_startups_avg = tools.extra_wc_data.get_platform_indicators()
-print_startup_data_line(sc1_startup_multi, "wc-k0s-multi-go-avg", extra_startups_avg[0], extra_startups_avg[2])
-print_startup_data_line(sc1_startup_multi, "wc-k0s-multi-rust-avg", extra_startups_avg[0], extra_startups_avg[2])
-print_startup_data_line(sc1_startup_multi, "wc-k3s-multi-go-avg", extra_startups_avg[4], extra_startups_avg[6])
-print_startup_data_line(sc1_startup_multi, "wc-k3s-multi-rust-avg", extra_startups_avg[5], extra_startups_avg[7])
-print_startup_data_line(sc1_startup_multi, "wc-k0s-multi-go-rc7-avg", extra_startups_avg[8], extra_startups_avg[10])
-print_startup_data_line(sc1_startup_multi, "wc-k0s-multi-rust-rc7-avg", extra_startups_avg[9], extra_startups_avg[11])
+print_startup_data_line(
+    sc1_startup_multi,
+    "wc-k0s-multi-go-avg",
+    extra_startups_avg[0],
+    extra_startups_avg[2],
+)
+print_startup_data_line(
+    sc1_startup_multi,
+    "wc-k0s-multi-rust-avg",
+    extra_startups_avg[0],
+    extra_startups_avg[2],
+)
+print_startup_data_line(
+    sc1_startup_multi,
+    "wc-k3s-multi-go-avg",
+    extra_startups_avg[4],
+    extra_startups_avg[6],
+)
+print_startup_data_line(
+    sc1_startup_multi,
+    "wc-k3s-multi-rust-avg",
+    extra_startups_avg[5],
+    extra_startups_avg[7],
+)
+print_startup_data_line(
+    sc1_startup_multi,
+    "wc-k0s-multi-go-rc7-avg",
+    extra_startups_avg[8],
+    extra_startups_avg[10],
+)
+print_startup_data_line(
+    sc1_startup_multi,
+    "wc-k0s-multi-rust-rc7-avg",
+    extra_startups_avg[9],
+    extra_startups_avg[11],
+)
 # And then write the individual sets into their own table
 extra_startups = tools.extra_wc_data.get_set_averages()
 for test_case, values in extra_startups.items():
@@ -219,6 +253,20 @@ for test_case in os.listdir(definitions.AI_SC2):
     )
 print("Scenario 2 data saved to files")
 
+
+if args.target == "paper":
+    # Remove the extra tables if targetting paper
+    paper_files = [sc2_ai_multi_hey_file, ai_startup_multi, sc1_startup_multi]
+    print("Targetting paper, removing useless files")
+    for file in all_files:
+        if file not in paper_files:
+            try:
+                os.remove(file)
+            except FileNotFoundError:
+                print("File not found")
+    # Update all files, so that cleaning and sorting does not look for
+    # non-existent files
+    all_files = paper_files
 
 # ***** Clean and sort the file contents *****
 for file in all_files:

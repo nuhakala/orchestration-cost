@@ -1,4 +1,4 @@
-CONTAINER_TAG=192.168.68.54:5000/go-server
+CONTAINER_TAG=192.168.68.54:5000/go-server-final-arm
 
 all:
 	podman build -t $(CONTAINER_TAG) .

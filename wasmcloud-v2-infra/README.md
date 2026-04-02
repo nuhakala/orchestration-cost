@@ -6,7 +6,7 @@ clone the wash repo `wasmcloud/wash` and build the rc6 (or rc7) components
 yourself and push them to local registry. The images are then defined in the
 local helm values file.
 
-In addition, to be able to run **workloads from local registry**, you need to
+In addition, to be able to run **workloads** from local registry, you need to
 add a flag `--allow-insecure-registries` to the runtime deployment template in
 the helm chart. This is already added to the charts.
 
@@ -20,13 +20,9 @@ on HPA, the autoscaling does not work.
 # Kubeedge
 
 Kubeedge requires service mesh. Using the wasmcloud gateway with that service
-mesh did not work: wasmCloud runtime-gateway tries to route the http requests
-using IP address of pods, but that does not work with the service mesh. It would
-neet to route using domain names in order for the service mesh to work.
+mesh did not work, but luckily my workload is such that I think I can safely use
+k8s services for load-balancing. Hence just forward the requests from edge
+gateway directly to the hostgroup svc and it should work.
 
-Luckily we can leverage the service mesh gateway with native K8s routing. We
-have a service for the wasmCloud hosts, and then the Edgemesh gateway can route
-requests to the hosts correctly. Only caveat is that it will load balance
-between the hosts without taking into account the wasmCloud workloads: if one
-workload is deployed and 10 hosts are available, 9/10 requests will land on
-empty host and won't return any response.
+This is also fine because wasmcloud does not support autoscaling, so this kind
+of routing is enough for static deployments.
