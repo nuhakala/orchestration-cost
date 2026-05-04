@@ -1,5 +1,6 @@
 import glob
 from math import nan
+import math
 import sys
 import pandas as pd
 from dataclasses import dataclass
@@ -18,6 +19,7 @@ class OrchCostMetric:
     process_rss_scale: float = 0
     node_mem_deploy: float = 0
     node_mem_scale: float = 0
+    node_max_mem: float = 0
     startup: float = 0
 
     def multi_node(self):
@@ -105,21 +107,27 @@ class OrchCostMetric:
             return nan
         return round(root, 2)
 
-    def calculate_metric_paper_version(self):
-        res = (
-            self.process_max_cpu_deploy
-            * self.process_max_cpu_scale
-            * self.node_max_cpu_deploy
-            * self.node_max_cpu_scale
-            * self.process_rss_deploy
-            * self.process_rss_scale
-            * self.node_mem_deploy
-            * self.node_mem_scale
-            # * self.startup
-        )
-        root = res ** (1 / 8)
-        if root == 0:
+    def calculate_metric_paper_version(self, cpu_modifier, mem_modifier):
+        # SpinKube placeholders should be skipped
+        if self.node_max_mem == 0:
             return nan
+
+        # ***** Weighted AVG *****
+        # modifier to change memory value into percentage
+        mem_percentage = 1 / self.node_max_mem * 100
+        mem_modifier = mem_percentage * mem_modifier
+        res = (
+            self.process_max_cpu_deploy * cpu_modifier
+            + self.process_max_cpu_scale * cpu_modifier
+            + self.node_max_cpu_deploy * cpu_modifier
+            + self.node_max_cpu_scale * cpu_modifier
+            + self.process_rss_deploy * mem_modifier
+            + self.process_rss_scale * mem_modifier
+            + self.node_mem_deploy * mem_modifier
+            + self.node_mem_scale * mem_modifier
+            )
+        root = res / 8
+
         return round(root, 2)
 
 
@@ -355,11 +363,13 @@ def get_orch_cost_metrics(list_files: list[str]):
     df = __get_empty_perf_df()
     for file in list_files:
         __append_file_stats(file, df)
+    # print(df["mem_total"])
     return (
         float(df["max_proc"].mean()),
         float(df["max_glob"].mean()),
         float(df["proc_rss"].mean()),
         float(df["mem_used"].mean()),
+        float(df["mem_total"].mean()),
     )
 
 

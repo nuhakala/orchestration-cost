@@ -2,7 +2,7 @@
 
 This repository contains a WebAssembly component built using [`wstd`](https://github.com/bytecodealliance/wstd) (an async Rust standard library for Wasm components and WASI 0.2) to serve HTTP requests.
 
-# Quickstart
+## Quickstart
 
 To start a local development loop with [Wasm Shell](https://github.com/wasmCloud/wasmCloud):
 

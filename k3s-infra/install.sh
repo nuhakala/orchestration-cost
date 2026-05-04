@@ -76,5 +76,6 @@ Usage:
 	install            > install K3s without creating systemd service and starting it
 	server             > start k3s server
 	worker             > start k3s agent
+	token              > print join token
 EOF
 esac

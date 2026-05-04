@@ -16,9 +16,9 @@ from tools.statistics_utils import OrchCostMetric
 
 
 ORCHESTRATORS = [
-    "native container",
+    "container",
     "Knative",
-    "Spin container",
+    "Spin cont",
     "Spin native",
     "wasmCloud",
 ]

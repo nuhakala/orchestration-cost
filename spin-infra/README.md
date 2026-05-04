@@ -15,13 +15,12 @@ or spintainer deployment):
 curl -H "Host: nuhakala.com" $(tools.sh ip)
 ```
 
-
-# Containerized apps
+## Containerized apps
 
 Cannot use spintainer executor, it cannot pull images from my local registry.
 Hence I specify the deployment by hand.
 
-# Kubeedge
+## Kubeedge
 
 Should work out of the box with kubeedge, assuming edgemesh is installed. Edge
 gateway not needed, just install nginx and the virtualserver should do route the

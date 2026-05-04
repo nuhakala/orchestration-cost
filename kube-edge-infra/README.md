@@ -59,7 +59,7 @@ So the actual reason was that latest release 1.22 does not support k8s 1.32, I
 guess there is something broken, so that is why the master branch needed to be
 used.
 
-# How does kubeedge work
+## How does kubeedge work
 
 So the cloudcore needs access to kube api server. Typically it runs on the same
 machine as the control plane.
@@ -78,7 +78,7 @@ default (tried it) hence we need to have edgemesh. Edgemesh enables us to expose
 services. I use nginx ingress conttroller with virtualserver to access them,
 other option is to use istio gateway, but I need the nginx metrics.
 
-# In short
+## In short
 
 - need to have images in local registry
 - need to deploy nginx-ingress

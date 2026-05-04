@@ -109,7 +109,9 @@ multi = create_pd_df()
 multi_no_startup = create_pd_df()
 wc_extra = create_pd_df()
 ai_multi = create_pd_df()
-ai_multi_paper = create_pd_df()
+ai_multi_c1m1_paper = create_pd_df()
+ai_multi_c2m1_paper = create_pd_df()
+ai_multi_c1m2_paper = create_pd_df()
 multi_paper = create_pd_df()
 
 
@@ -122,8 +124,10 @@ transform_to_df(
 )
 transform_to_df(wc_extra_metrics, wc_extra, lambda metric: metric.calculate_metric())
 transform_to_df(ai_metrics, ai_multi, lambda metric: metric.calculate_metric())
-transform_to_df(ai_metrics, ai_multi_paper, lambda metric: metric.calculate_metric_paper_version())
-transform_to_df(metrics_multi, multi_paper, lambda metric: metric.calculate_metric_paper_version())
+transform_to_df(ai_metrics, ai_multi_c1m1_paper, lambda metric: metric.calculate_metric_paper_version(1, 1))
+transform_to_df(ai_metrics, ai_multi_c2m1_paper, lambda metric: metric.calculate_metric_paper_version(2, 1))
+transform_to_df(ai_metrics, ai_multi_c1m2_paper, lambda metric: metric.calculate_metric_paper_version(1, 2))
+transform_to_df(metrics_multi, multi_paper, lambda metric: metric.calculate_metric_paper_version(1, 1))
 
 
 # Replace the orch cost value with the one that were
@@ -164,6 +168,9 @@ fig_orchestrator_multi_ai = ( f"{definitions.FIGURE_DIR}/orch_cost_orchestrator_
 fig_orchestrator_single_curve = ( f"{definitions.FIGURE_DIR}/orch_cost_orchestrator_single_curve.pdf")
 fig_orchestrator_multi_curve = ( f"{definitions.FIGURE_DIR}/orch_cost_orchestrator_multi_curve.pdf")
 fig_orchestrator_multi_curve_ai = ( f"{definitions.FIGURE_DIR}/orch_cost_orchestrator_multi_curve_ai.pdf")
+fig_orch_multi_ai_c1m1 = f"{definitions.FIGURE_DIR}/orch_cost_orchestrator_c1m1.pdf"
+fig_orch_multi_ai_c2m1 = f"{definitions.FIGURE_DIR}/orch_cost_orchestrator_c2m1.pdf"
+fig_orch_multi_ai_c1m2 = f"{definitions.FIGURE_DIR}/orch_cost_orchestrator_c1m2.pdf"
 all_files = all_files + [
     fig_platform_single,
     fig_platform_multi,
@@ -176,6 +183,9 @@ all_files = all_files + [
     fig_platform_multi_ai,
     fig_orchestrator_multi_ai,
     fig_orchestrator_multi_curve_ai,
+    fig_orch_multi_ai_c1m1,
+    fig_orch_multi_ai_c2m1,
+    fig_orch_multi_ai_c1m2,
 ]
 
 # Remove old files
@@ -385,7 +395,7 @@ if args.target == "thesis":
 else:
     multi_paper_no_go = multi_paper.loc[multi_paper["language"] == "rust"]
 
-    print_orch_cost_table(orch_cost_ai_sorted, ai_multi_paper, True, args.save)
+    print_orch_cost_table(orch_cost_ai_sorted, ai_multi_c1m1_paper, True, args.save)
     print_orch_cost_table(orch_cost_multi_sorted, multi_paper_no_go, True, args.save)
 
     font_size = 8
@@ -394,6 +404,7 @@ else:
             "font.size": font_size,
             "font.family": "serif",
             "font.serif": "Times New Roman",
+            "text.usetex": True,
             "axes.titlesize": font_size,
             "axes.labelsize": font_size,
             "xtick.labelsize": font_size,
@@ -401,15 +412,17 @@ else:
             "legend.fontsize": font_size,
         }
     )
-    ai_multi_sorted = ai_multi_paper.sort_values(["test_case", "platform"])
+    ai_multi_c1m1 = ai_multi_c1m1_paper.sort_values(["test_case", "platform"])
+    ai_multi_c1m2 = ai_multi_c1m2_paper.sort_values(["test_case", "platform"])
+    ai_multi_c2m1 = ai_multi_c2m1_paper.sort_values(["test_case", "platform"])
     multi_sorted = multi_paper_no_go.sort_values(["test_case", "platform"])
-    ai_multi_values_orchestrator = orchestrator_multi_values(ai_multi_sorted, False)
-    ai_multi_values_platform = bar_chart_by_platform_multi(ai_multi_sorted, False)
+    # ai_multi_values_orchestrator = orchestrator_multi_values(ai_multi_sorted, False)
+    # ai_multi_values_platform = bar_chart_by_platform_multi(ai_multi_sorted, False)
     multi_values_orchestrator = orchestrator_multi_values(multi_sorted, False)
 
     if not args.save:
-        print("AI Multi sorted")
-        print(ai_multi_sorted)
+        print("AI Multi sorted c1m1")
+        print(ai_multi_c1m1)
         print()
         print("Multi sorted no Golang data")
         print(multi_sorted)
@@ -418,20 +431,52 @@ else:
         print(multi_paper.sort_values(["test_case", "platform"]))
         print()
 
-    max = 280
-    min = 160
-    legend_anchor = (-0.02, -0.11)
+    min = 40
+    max = 80
+    legend_anchor = (-0.06, -0.11)
     legend_height = 1.5
 
     create_bar_plot(
         ORCHESTRATORS,
         0.3,
-        ai_multi_values_orchestrator,
-        "Orchestration Cost by orchestrators for real-world workload",
-        min,
-        max,
+        orchestrator_multi_values(ai_multi_c1m1, False),
+        "Orchestration Cost by orchestrators for real-world workload with\nequal weights",
+        35,
+        55,
         3,
-        fig_orchestrator_multi_ai,
+        fig_orch_multi_ai_c1m1,
+        args.save,
+        args.show,
+        bar_font_size=8,
+        legend_anchor=legend_anchor,
+        legend_height=legend_height,
+    )
+
+    create_bar_plot(
+        ORCHESTRATORS,
+        0.3,
+        orchestrator_multi_values(ai_multi_c1m2, False),
+        "Orchestration Cost by orchestrators for real-world workload with\ndouble weight for memory",
+        50,
+        85,
+        3,
+        fig_orch_multi_ai_c1m2,
+        args.save,
+        args.show,
+        bar_font_size=8,
+        legend_anchor=legend_anchor,
+        legend_height=legend_height,
+    )
+
+    create_bar_plot(
+        ORCHESTRATORS,
+        0.3,
+        orchestrator_multi_values(ai_multi_c2m1, False),
+        "Orchestration Cost by orchestrators for real-world workload with\ndouble weight for CPU",
+        50,
+        85,
+        3,
+        fig_orch_multi_ai_c2m1,
         args.save,
         args.show,
         bar_font_size=8,
@@ -442,10 +487,10 @@ else:
     create_bar_plot(
         PLATFORMS_MULTI,
         0.15,
-        ai_multi_values_platform,
-        "Orchestration Cost by platforms for real-world workload",
-        min,
-        max,
+        bar_chart_by_platform_multi(ai_multi_c1m1, False),
+        "Orchestration Cost by platforms for real-world workload with\nequal weights",
+        30,
+        55,
         3,
         fig_platform_multi_ai,
         args.save,
@@ -457,10 +502,10 @@ else:
 
     create_line_plot(
         ORCHESTRATORS,
-        ai_multi_values_orchestrator,
-        "Orchestration Cost by orchestrators for real-world workload",
-        min,
-        max - 10,
+        orchestrator_multi_values(ai_multi_c1m1, False),
+        "Orchestration Cost by orchestrators for real-world workload with\nequal weights",
+        30,
+        60,
         3,
         fig_orchestrator_multi_curve_ai,
         args.save,
@@ -474,9 +519,9 @@ else:
         ORCHESTRATORS,
         0.3,
         multi_values_orchestrator,
-        "Orchestration Cost by orchestrators for artificial workload",
-        min - 30,
-        max,
+        "Orchestration Cost by orchestrators for artificial workload with\nequal weights",
+        25,
+        55,
         3,
         fig_orchestrator_multi,
         args.save,

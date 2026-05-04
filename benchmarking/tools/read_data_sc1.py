@@ -213,10 +213,10 @@ def get_orch_cost_values(base_dir, stats_dir, metric: statistics_utils.OrchCostM
     worker_perf_files = glob.glob(f"{folder}/[0-9]-worker-perf.csv")
 
     if metric.multi_node():
-        c_max_proc, c_max_glob, c_proc_rss, c_node_mem = (
+        c_max_proc, c_max_glob, c_proc_rss, c_node_mem, node_max_mem = (
             statistics_utils.get_orch_cost_metrics(perf_files)
         )
-        w_max_proc, w_max_glob, w_proc_rss, w_node_mem = (
+        w_max_proc, w_max_glob, w_proc_rss, w_node_mem, _ = (
             statistics_utils.get_orch_cost_metrics(worker_perf_files)
         )
         max_proc = (c_max_proc + w_max_proc) / 2
@@ -224,7 +224,7 @@ def get_orch_cost_values(base_dir, stats_dir, metric: statistics_utils.OrchCostM
         proc_rss = (c_proc_rss + w_proc_rss) / 2
         node_mem = (c_node_mem + w_node_mem) / 2
     else:
-        max_proc, max_glob, proc_rss, node_mem = statistics_utils.get_orch_cost_metrics(
+        max_proc, max_glob, proc_rss, node_mem, node_max_mem = statistics_utils.get_orch_cost_metrics(
             perf_files
         )
 
@@ -232,6 +232,7 @@ def get_orch_cost_values(base_dir, stats_dir, metric: statistics_utils.OrchCostM
     metric.node_max_cpu_deploy = max_glob
     metric.process_rss_deploy = proc_rss
     metric.node_mem_deploy = node_mem
+    metric.node_max_mem = node_max_mem
 
 
 if __name__ == "__main__":

@@ -24,7 +24,7 @@ root are meant to be invoked directly.
 
 For more detailed usage instructions, consult the individual files.
 
-# Data
+## Data
 
 All the collected data is under `./data`
 
